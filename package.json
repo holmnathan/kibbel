@@ -1,0 +1,41 @@
+{
+  "dependencies": {
+    "@prisma/client": "^3.8.1",
+    "chalk": "^4.1.2",
+    "fastify": "^3.27.0",
+    "prisma": "^3.8.1"
+  },
+  "devDependencies": {
+    "@tsconfig/node16": "^1.0.2",
+    "@types/node": "^17.0.10",
+    "dotenv": "^14.2.0",
+    "nodemon": "^2.0.15",
+    "prettier": "^2.5.1",
+    "prettier-plugin-prisma": "^3.8.0",
+    "typescript": "^4.5.5"
+  },
+  "scripts": {
+    "start": "tsc-watch --onSuccess \"node --require dotenv/config ./dist/server.js\""
+  },
+  "name": "kibbel-server",
+  "description": "Backend GraphQL API Server for Kibbel App",
+  "version": "1.0.0",
+  "main": "dist/server.js",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/holmnathan/kibbel-server.git"
+  },
+  "keywords": [
+    "pet",
+    "nutrition",
+    "calories",
+    "cat",
+    "dog"
+  ],
+  "author": "Nathan Holm",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/holmnathan/kibbel-server/issues"
+  },
+  "homepage": "https://github.com/holmnathan/kibbel-server#readme"
+}
