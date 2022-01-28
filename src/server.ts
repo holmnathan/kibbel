@@ -30,6 +30,4 @@ const startServer = async () => {
   }
 };
 
-startServer();
-
-export default server;
+export default startServer;
