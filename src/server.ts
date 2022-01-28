@@ -1,31 +1,33 @@
 // Kibbel API Server ----------------------------------------------------------
-import fastify, { FastifyError } from 'fastify';
+import fastify, {
+  FastifyError,
+  FastifyServerOptions,
+  FastifyInstance,
+} from 'fastify';
 import chalk from 'chalk';
 
-const server = fastify();
+const createServer = (options: FastifyServerOptions = {}): FastifyInstance => {
+  const server = fastify(options);
 
-// Environment Variables ------------------------------------------------------
-const SERVER_PORT: number =
-  typeof process.env.SERVER_PORT === 'string'
-    ? parseInt(process.env.SERVER_PORT)
-    : 3000;
+  server.get('/', async (request, reply) => {
+    return 'pong\n';
+  });
 
-// Routes ---------------------------------------------------------------------
-server.get('/', async (request, reply) => {
-  return 'pong\n';
-});
+  return server;
+};
 
 const startServer = async () => {
+  const server = createServer({ logger: true });
   try {
-    await server.listen({ port: SERVER_PORT });
-    const address = server.server.address();
-    const port = typeof address === 'string' ? address : address?.port;
+    const SERVER_PORT = process.env.SERVER_PORT
+      ? parseInt(process.env.SERVER_PORT)
+      : 3000;
+    await server.listen(SERVER_PORT);
     console.log(chalk.hex('#27CECE')('Kibbel Server'));
-    console.log(`Running on port ${port}`);
-  } catch (e: unknown) {
+    console.log(`Running on port ${SERVER_PORT}`);
+  } catch (error) {
     console.log(chalk.red('Kibbel Server'));
-    const error = e as FastifyError;
-    console.error(error.message);
+    server.log.error(error);
     process.exit(1);
   }
 };
