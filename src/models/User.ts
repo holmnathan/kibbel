@@ -4,8 +4,10 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  OneToOne,
 } from 'typeorm';
 import { ObjectType, Field, ID } from 'type-graphql';
+import { Pet } from './Pet';
 
 @Entity()
 @ObjectType({ description: 'User Schema' })
@@ -45,4 +47,7 @@ export class User extends BaseEntity {
   @Field({ description: 'The User’s account creation date' })
   @CreateDateColumn()
   createdAt!: Date;
+
+  @OneToOne(() => Pet, (pet) => pet.user)
+  pet!: Pet;
 }
