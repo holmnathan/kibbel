@@ -4,14 +4,15 @@ import fastify, {
   FastifyServerOptions,
   FastifyInstance,
 } from 'fastify';
+import mercurius from 'mercurius';
 import chalk from 'chalk';
+import schema from './schema';
+import { context } from './context';
 
 const createServer = (options: FastifyServerOptions = {}): FastifyInstance => {
   const server = fastify(options);
 
-  server.get('/', async (request, reply) => {
-    return 'pong\n';
-  });
+  server.register(mercurius, { schema, graphiql: true });
 
   return server;
 };
