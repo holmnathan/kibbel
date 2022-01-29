@@ -1,7 +1,10 @@
 {
   "extends": "@tsconfig/node16/tsconfig.json",
   "compilerOptions": {
-    "outDir": "dist"
+    "outDir": "dist",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es2020"
   },
-  "include": ["src/**/*.ts", "server.ts"]
+  "include": ["src/**/*.ts"]
 }
