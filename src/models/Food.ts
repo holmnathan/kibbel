@@ -1,9 +1,16 @@
-import { Entity, Column, PrimaryGeneratedColumn, BaseEntity } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  BaseEntity,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 import { Field, ObjectType, ID } from 'type-graphql';
-import RecordDate from './RecordDate';
+import { RecordDate, User, DietRestriction } from '.';
 
 // Entities and Type Definitions ----------------------------------------------
-// TypeOrm decorators:     @Entity, @[*]Column
+// TypeOrm decorators:     @Entity, @[*]Column, [*]To[*]
 // TypeGraphQL decorators: @ObjectType, @Field
 
 // Shared TypeGraphQL descriptions and TypeORM comments
@@ -46,6 +53,21 @@ class Food extends BaseEntity {
   @Field(() => RecordDate)
   @Column(() => RecordDate)
   record!: RecordDate;
+
+  // Relational Fields
+
+  // A food can be favorited by many users
+  // A user may favorite many foods
+  @Field(() => [User])
+  @ManyToMany(() => User, (user) => user.favoriteFoods)
+  users!: User[];
+
+  // A food can meet many dietary restrictions
+  // A dietary restriction can be assigned to many foods
+  @Field(() => [DietRestriction])
+  @ManyToMany(() => DietRestriction)
+  @JoinTable()
+  dietRestrictions!: DietRestriction[];
 }
 
 export default Food;
