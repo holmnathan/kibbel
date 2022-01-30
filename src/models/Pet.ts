@@ -3,14 +3,13 @@ import {
   BaseEntity,
   PrimaryGeneratedColumn,
   Column,
-  OneToOne,
   ManyToOne,
-  JoinColumn,
+  OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { ObjectType, Field, ID, registerEnumType } from 'type-graphql';
-import RecordDate from './RecordDate';
-import User from './User';
-import Diet from './Diet';
+import { RecordDate, User, Diet, MealPlan, Weight, DietRestriction } from '.';
 
 // Enumerated Types -----------------------------------------------------------
 // Each Type is defined and registered with TypeGraphQL
@@ -111,13 +110,34 @@ class Pet extends BaseEntity {
 
   // Relational Fields
 
-  // No TypegraphQL @Field(): Hides field from public access
-  @OneToOne(() => User, (user) => user.pet)
-  @JoinColumn()
+  // A pet belongs to one user
+  // A user can have many pets
+  @ManyToOne(() => User, (user) => user.pets)
   user!: User;
 
+  // A pet is assigned one meal plan
+  // A Meal plan can be assigned to many Pets
+  @Field(() => MealPlan)
+  @ManyToOne(() => MealPlan, (mealPlan) => mealPlan.pets)
+  mealPlan!: MealPlan;
+
+  // A pet is assigned one diet
+  // A Diet can be assigned to many pets
   @ManyToOne(() => Diet)
   diet!: Diet;
+
+  // A pet can have many weights
+  // A weight belongs to one pet
+  @Field(() => [Weight])
+  @OneToMany(() => Weight, (weight) => weight.pet)
+  weightHistory!: Weight[];
+
+  // A pet can have many dietary restrictions
+  // A dietary restriction can be assigned to many pets
+  @Field(() => [DietRestriction])
+  @ManyToMany(() => DietRestriction)
+  @JoinTable()
+  dietRestrictions!: DietRestriction[];
 }
 
 export default Pet;
