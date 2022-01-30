@@ -3,7 +3,17 @@ import fastifyPlugin from 'fastify-plugin';
 import { createConnection, getConnectionOptions } from 'typeorm';
 import * as entities from '../models';
 
-const { User, Pet, Diet, Food } = entities;
+const {
+  User,
+  Pet,
+  Diet,
+  Food,
+  Serving,
+  Meal,
+  MealPlan,
+  Weight,
+  DietRestriction,
+} = entities;
 
 const database = fastifyPlugin(async (server) => {
   try {
@@ -11,7 +21,17 @@ const database = fastifyPlugin(async (server) => {
     const connectionOptions = await getConnectionOptions();
     Object.assign(connectionOptions, {
       options: { encrypt: true },
-      entities: [User, Pet, Diet, Food],
+      entities: [
+        User,
+        Pet,
+        Diet,
+        Food,
+        Serving,
+        Meal,
+        MealPlan,
+        Weight,
+        DietRestriction,
+      ],
     });
     const connection = await createConnection(connectionOptions);
 
@@ -21,6 +41,11 @@ const database = fastifyPlugin(async (server) => {
       pet: connection.getRepository(Pet),
       diet: connection.getRepository(Diet),
       food: connection.getRepository(Food),
+      serving: connection.getRepository(Serving),
+      meal: connection.getRepository(Meal),
+      mealPlan: connection.getRepository(MealPlan),
+      weight: connection.getRepository(Weight),
+      dietRestriction: connection.getRepository(DietRestriction),
     });
   } catch (error) {
     console.log(error);
