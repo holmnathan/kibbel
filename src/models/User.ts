@@ -7,26 +7,38 @@ import {
   OneToOne,
 } from 'typeorm';
 import { ObjectType, Field, ID } from 'type-graphql';
-import { Pet } from './Pet';
+import Pet from './Pet';
+
+// Entities and Type Definitions ----------------------------------------------
+// TypeOrm decorators:     @Entity, @[*]Column, @[*]To[*]
+// TypeGraphQL decorators: @ObjectType, @Field
+
+// Shared TypeGraphQL descriptions and TypeORM comments
+const sharedComments = {
+  fullName: 'The user’s full or legal name(s)',
+  nickname: 'The user’s preferred way to be addressed',
+  imageUrl: 'URL of user’s uploaded profile image',
+  createdAt: 'The user’s account creation date',
+};
 
 @Entity()
 @ObjectType({ description: 'User Schema' })
-export class User extends BaseEntity {
+class User extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Field({
-    description: 'The User’s full or legal name(s)',
+    description: sharedComments.fullName,
   })
-  @Column()
+  @Column({ comment: sharedComments.fullName })
   fullName!: string;
 
   @Field({
     nullable: true,
-    description: 'The User’s preferred way to be addressed',
+    description: sharedComments.nickname,
   })
-  @Column({ nullable: true })
+  @Column({ comment: sharedComments.nickname, nullable: true })
   nickname?: string;
 
   @Field({})
@@ -39,15 +51,18 @@ export class User extends BaseEntity {
 
   @Field({
     nullable: true,
-    description: 'URL of User’s uploaded profile image',
+    description: sharedComments.imageUrl,
   })
-  @Column({ nullable: true })
+  @Column({ comment: sharedComments.imageUrl, nullable: true })
   imageUrl?: string;
 
-  @Field({ description: 'The User’s account creation date' })
-  @CreateDateColumn()
+  @Field({ description: sharedComments.createdAt })
+  @CreateDateColumn({ comment: sharedComments.createdAt })
   createdAt!: Date;
 
   @OneToOne(() => Pet, (pet) => pet.user)
   pet!: Pet;
 }
+
+export default User;
+export { User };
