@@ -3,11 +3,12 @@ import {
   BaseEntity,
   PrimaryGeneratedColumn,
   Column,
-  OneToOne,
+  OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { ObjectType, Field, ID } from 'type-graphql';
-import RecordDate from './RecordDate';
-import Pet from './Pet';
+import { RecordDate, Pet, Food } from '.';
 
 // Entities and Type Definitions ----------------------------------------------
 // TypeOrm decorators:     @Entity, @[*]Column, @[*]To[*]
@@ -61,8 +62,16 @@ class User extends BaseEntity {
   record!: RecordDate;
 
   // Relational fields
-  @OneToOne(() => Pet, (pet) => pet.user)
-  pet!: Pet;
+
+  // User can have many pets
+  @OneToMany(() => Pet, (pet) => pet.user)
+  pets!: Pet[];
+
+  // Many users can favorite many foods
+  @Field(() => [Food])
+  @ManyToMany(() => Food)
+  @JoinTable()
+  favoriteFoods!: Food[];
 }
 
 export default User;
