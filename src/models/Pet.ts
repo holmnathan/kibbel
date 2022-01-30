@@ -3,12 +3,12 @@ import {
   BaseEntity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
   OneToOne,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
 import { ObjectType, Field, ID, registerEnumType } from 'type-graphql';
+import RecordDate from './RecordDate';
 import User from './User';
 import Diet from './Diet';
 
@@ -51,7 +51,6 @@ const sharedComments = {
   isIntact: 'The pet’s reproductive status',
   species: 'The pet’s species',
   gender: 'The pet’s gender',
-  createdAt: 'The pet’s profile creation date',
 };
 
 @Entity()
@@ -104,11 +103,15 @@ class Pet extends BaseEntity {
   })
   gender?: PetGender;
 
-  @Field({ description: sharedComments.createdAt })
-  @CreateDateColumn({ comment: sharedComments.createdAt })
-  createdAt!: Date;
+  // Create / Update Fields
 
-  // No @Field() specified: Hides field from public access
+  @Field(() => RecordDate)
+  @Column(() => RecordDate)
+  record!: RecordDate;
+
+  // Relational Fields
+
+  // No TypegraphQL @Field(): Hides field from public access
   @OneToOne(() => User, (user) => user.pet)
   @JoinColumn()
   user!: User;

@@ -3,10 +3,10 @@ import {
   BaseEntity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
   OneToOne,
 } from 'typeorm';
 import { ObjectType, Field, ID } from 'type-graphql';
+import RecordDate from './RecordDate';
 import Pet from './Pet';
 
 // Entities and Type Definitions ----------------------------------------------
@@ -18,7 +18,6 @@ const sharedComments = {
   fullName: 'The user’s full or legal name(s)',
   nickname: 'The user’s preferred way to be addressed',
   imageUrl: 'URL of user’s uploaded profile image',
-  createdAt: 'The user’s account creation date',
 };
 
 @Entity()
@@ -56,10 +55,12 @@ class User extends BaseEntity {
   @Column({ comment: sharedComments.imageUrl, nullable: true })
   imageUrl?: string;
 
-  @Field({ description: sharedComments.createdAt })
-  @CreateDateColumn({ comment: sharedComments.createdAt })
-  createdAt!: Date;
+  // Import record created / updated fields from RecordDate schema
+  @Field(() => RecordDate)
+  @Column(() => RecordDate)
+  record!: RecordDate;
 
+  // Relational fields
   @OneToOne(() => Pet, (pet) => pet.user)
   pet!: Pet;
 }
