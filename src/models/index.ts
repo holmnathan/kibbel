@@ -3,3 +3,8 @@ export * from './User';
 export * from './Pet';
 export * from './Diet';
 export * from './Food';
+export * from './Serving';
+export * from './Meal';
+export * from './MealPlan';
+export * from './Weight';
+export * from './DietRestriction';
