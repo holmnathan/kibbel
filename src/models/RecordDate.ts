@@ -22,3 +22,4 @@ class RecordDate {
 }
 
 export default RecordDate;
+export { RecordDate };
