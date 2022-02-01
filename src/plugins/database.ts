@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import fastifyPlugin from 'fastify-plugin';
 import { createConnection, getConnectionOptions } from 'typeorm';
-import * as entities from '../models';
+import * as entities from '../entities/';
 
 const {
   User,
