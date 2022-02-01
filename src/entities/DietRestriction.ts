@@ -1,20 +1,10 @@
-import {
-  BaseEntity,
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  ManyToMany,
-} from 'typeorm';
-import { ObjectType, Field, ID } from 'type-graphql';
-import { RecordDate, Food, Pet } from '.';
+import { Entity, Column, ManyToMany } from 'typeorm';
+import { ObjectType, Field } from 'type-graphql';
+import { BaseId, Food, Pet } from '.';
 
 @ObjectType({ description: 'Dietary Restrictions Schema' })
 @Entity()
-class DietRestriction extends BaseEntity {
-  @Field(() => ID)
-  @PrimaryGeneratedColumn()
-  id!: Number;
-
+class DietRestriction extends BaseId {
   @Field()
   @Column()
   name!: String;

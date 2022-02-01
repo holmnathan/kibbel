@@ -1,13 +1,6 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  BaseEntity,
-  ManyToMany,
-  JoinTable,
-} from 'typeorm';
-import { Field, ObjectType, ID } from 'type-graphql';
-import { RecordDate, User, DietRestriction } from '.';
+import { Entity, Column, ManyToMany, JoinTable } from 'typeorm';
+import { Field, ObjectType } from 'type-graphql';
+import { BaseUuid, User, DietRestriction } from '.';
 
 // Entities and Type Definitions ----------------------------------------------
 // TypeOrm decorators:     @Entity, @[*]Column, [*]To[*]
@@ -24,11 +17,7 @@ const sharedComments = {
 
 @ObjectType({ description: 'Food Schema' })
 @Entity()
-class Food extends BaseEntity {
-  @Field(() => ID)
-  @PrimaryGeneratedColumn('uuid')
-  id!: String;
-
+class Food extends BaseUuid {
   @Field({ description: sharedComments.brandName })
   @Column({ comment: sharedComments.brandName })
   name!: String;
@@ -48,11 +37,6 @@ class Food extends BaseEntity {
   @Field({ description: sharedComments.kilogramCalories })
   @Column({ comment: sharedComments.kilogramCalories })
   kilogramCalories!: Number;
-
-  // Import record created / updated fields from RecordDate schema
-  @Field(() => RecordDate)
-  @Column(() => RecordDate)
-  record!: RecordDate;
 
   // Relational Fields
 

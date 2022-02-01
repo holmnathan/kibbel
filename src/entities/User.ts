@@ -1,14 +1,6 @@
-import {
-  Entity,
-  BaseEntity,
-  PrimaryGeneratedColumn,
-  Column,
-  OneToMany,
-  ManyToMany,
-  JoinTable,
-} from 'typeorm';
-import { ObjectType, Field, ID } from 'type-graphql';
-import { RecordDate, Pet, Food } from '.';
+import { Entity, Column, OneToMany, ManyToMany, JoinTable } from 'typeorm';
+import { ObjectType, Field } from 'type-graphql';
+import { BaseUuid, Pet, Food } from '.';
 
 // Entities and Type Definitions ----------------------------------------------
 // TypeOrm decorators:     @Entity, @[*]Column, @[*]To[*]
@@ -17,17 +9,13 @@ import { RecordDate, Pet, Food } from '.';
 // Shared TypeGraphQL descriptions and TypeORM comments
 const sharedComments = {
   fullName: 'The user’s full or legal name(s)',
-  nickname: 'The user’s preferred way to be addressed',
+  chosenName: 'The user’s preferred way to be addressed',
   imageUrl: 'URL of user’s uploaded profile image',
 };
 
 @Entity()
 @ObjectType({ description: 'User Schema' })
-class User extends BaseEntity {
-  @Field(() => ID)
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
-
+class User extends BaseUuid {
   @Field({
     description: sharedComments.fullName,
   })
@@ -36,12 +24,12 @@ class User extends BaseEntity {
 
   @Field({
     nullable: true,
-    description: sharedComments.nickname,
+    description: sharedComments.chosenName,
   })
-  @Column({ comment: sharedComments.nickname, nullable: true })
-  nickname?: string;
+  @Column({ comment: sharedComments.chosenName, nullable: true })
+  chosenName?: string;
 
-  @Field({})
+  @Field()
   @Column({ unique: true })
   email!: string;
 
@@ -55,11 +43,6 @@ class User extends BaseEntity {
   })
   @Column({ comment: sharedComments.imageUrl, nullable: true })
   imageUrl?: string;
-
-  // Import record created / updated fields from RecordDate schema
-  @Field(() => RecordDate)
-  @Column(() => RecordDate)
-  record!: RecordDate;
 
   // Relational fields
 

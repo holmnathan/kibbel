@@ -1,5 +1,6 @@
-import { BaseEntity, Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
-import { ObjectType, Field, ID } from 'type-graphql';
+import { Entity, Column } from 'typeorm';
+import { ObjectType, Field } from 'type-graphql';
+import { BaseId } from '.';
 
 // Entities and Type Definitions ----------------------------------------------
 // TypeOrm decorators:     @Entity, @[*]Column
@@ -13,11 +14,7 @@ const sharedComments = {
 
 @Entity()
 @ObjectType({ description: 'Diet Type Schema' })
-class Diet extends BaseEntity {
-  @Field(() => ID)
-  @PrimaryGeneratedColumn()
-  id!: number;
-
+class Diet extends BaseId {
   @Field()
   @Column()
   name!: string;

@@ -1,15 +1,13 @@
 import {
   Entity,
-  BaseEntity,
-  PrimaryGeneratedColumn,
   Column,
   ManyToOne,
   OneToMany,
   ManyToMany,
   JoinTable,
 } from 'typeorm';
-import { ObjectType, Field, ID, registerEnumType } from 'type-graphql';
-import { RecordDate, User, Diet, MealPlan, Weight, DietRestriction } from '.';
+import { ObjectType, Field, registerEnumType } from 'type-graphql';
+import { BaseUuid, User, Diet, MealPlan, Weight, DietRestriction } from '.';
 
 // Enumerated Types -----------------------------------------------------------
 // Each Type is defined and registered with TypeGraphQL
@@ -54,11 +52,7 @@ const sharedComments = {
 
 @Entity()
 @ObjectType({ description: 'Pet Schema' })
-class Pet extends BaseEntity {
-  @Field(() => ID)
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
-
+class Pet extends BaseUuid {
   @Field({
     description: sharedComments.name,
   })
@@ -101,12 +95,6 @@ class Pet extends BaseEntity {
     enum: PetGender,
   })
   gender?: PetGender;
-
-  // Create / Update Fields
-
-  @Field(() => RecordDate)
-  @Column(() => RecordDate)
-  record!: RecordDate;
 
   // Relational Fields
 

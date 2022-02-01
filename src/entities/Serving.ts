@@ -1,12 +1,6 @@
-import {
-  BaseEntity,
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  ManyToOne,
-} from 'typeorm';
-import { Field, ObjectType, ID } from 'type-graphql';
-import { RecordDate, Food, Meal } from '.';
+import { Entity, Column, ManyToOne } from 'typeorm';
+import { Field, ObjectType } from 'type-graphql';
+import { BaseUuid, Food, Meal } from '.';
 
 // Entities and Type Definitions ----------------------------------------------
 // TypeOrm decorators:     @Entity, @[*]Column, [*]To[*]
@@ -20,11 +14,7 @@ const sharedComments = {
 
 @ObjectType({ description: 'Serving Schema' })
 @Entity()
-class Serving extends BaseEntity {
-  @Field(() => ID)
-  @PrimaryGeneratedColumn('uuid')
-  id!: String;
-
+class Serving extends BaseUuid {
   @Field({ description: sharedComments.sortOrder })
   @Column({ comment: sharedComments.sortOrder })
   sortOrder!: Number;
@@ -32,12 +22,6 @@ class Serving extends BaseEntity {
   @Field({ description: sharedComments.size })
   @Column({ comment: sharedComments.size })
   size!: Number;
-
-  // Create / Update Fields
-
-  @Field(() => RecordDate)
-  @Column(() => RecordDate)
-  record!: RecordDate;
 
   // Relational Fields
 

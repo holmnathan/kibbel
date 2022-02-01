@@ -1,12 +1,6 @@
-import {
-  BaseEntity,
-  Entity,
-  ManyToOne,
-  Column,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
-import { ObjectType, Field, ID } from 'type-graphql';
-import { RecordDate, Pet } from '.';
+import { Entity, ManyToOne, Column } from 'typeorm';
+import { ObjectType, Field } from 'type-graphql';
+import { BaseUuid, Pet } from '.';
 
 const sharedComments = {
   weighDate: 'The date pet was weighed',
@@ -15,11 +9,7 @@ const sharedComments = {
 
 @ObjectType({ description: 'Weight Schema' })
 @Entity()
-class Weight extends BaseEntity {
-  @Field(() => ID)
-  @PrimaryGeneratedColumn('uuid')
-  id!: String;
-
+class Weight extends BaseUuid {
   @Field({ description: sharedComments.weighDate })
   @Column({ comment: sharedComments.weighDate })
   weighDate!: Date;
@@ -27,12 +17,6 @@ class Weight extends BaseEntity {
   @Field({ description: sharedComments.weight })
   @Column({ comment: sharedComments.weight })
   weight!: Number;
-
-  // Create / Update Fields
-
-  @Field(() => RecordDate)
-  @Column(() => RecordDate)
-  record!: RecordDate;
 
   // Relational Fields
 
