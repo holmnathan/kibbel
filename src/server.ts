@@ -1,25 +1,13 @@
 // Kibbel API Server ----------------------------------------------------------
 import 'reflect-metadata';
-import fastify, { FastifyInstance, FastifyServerOptions } from 'fastify';
+import fastify, { FastifyServerOptions } from 'fastify';
 import { ApolloServer } from 'apollo-server-fastify';
 import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
-import { ApolloServerPlugin } from 'apollo-server-plugin-base';
 import chalk from 'chalk';
 import { buildSchema } from 'type-graphql';
 import { UserResolver } from './resolvers';
 import database from './plugins/database';
-
-const fastifyAppClosePlugin = (app: FastifyInstance): ApolloServerPlugin => {
-  return {
-    async serverWillStart() {
-      return {
-        async drainServer() {
-          await app.close();
-        },
-      };
-    },
-  };
-};
+import fastifyAppClosePlugin from './plugins/AppClose';
 
 const createServer = async (options: FastifyServerOptions = {}) => {
   const app = fastify(options);
