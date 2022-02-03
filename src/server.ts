@@ -9,6 +9,14 @@ import { UserResolver } from './resolvers';
 import database from './plugins/database';
 import fastifyAppClosePlugin from './plugins/AppClose';
 
+// Import environment variables
+
+const SERVER_PORT =
+  process.env.SERVER_PORT && parseInt(process.env.SERVER_PORT)
+    ? process.env.SERVER_PORT
+    : 3000;
+const ENVIRONMENT = process.env.ENVIRONMENT ?? 'production';
+
 const createServer = async (options: FastifyServerOptions = {}) => {
   const app = fastify(options);
 
@@ -24,16 +32,27 @@ const createServer = async (options: FastifyServerOptions = {}) => {
   await server.start();
   app.register(server.createHandler());
   app.register(database);
-  const SERVER_PORT = process.env.SERVER_PORT
-    ? parseInt(process.env.SERVER_PORT)
-    : 3000;
-  app.listen(SERVER_PORT);
+
+  app.listen(SERVER_PORT, (error, appUrl) => {
+    if (error) app.log.error(error);
+  });
 };
 
 const startServer = async () => {
   try {
-    await createServer({ logger: true });
-    console.log(chalk.hex('#27CECE')('Kibbel Server'));
+    await createServer({
+      logger: {
+        prettyPrint:
+          ENVIRONMENT === 'development'
+            ? {
+                translateTime: 'Sys:h:MM:ss TT',
+                ignore: 'pid,hostname',
+                levelFirst: true,
+              }
+            : false,
+      },
+    });
+    console.error(chalk.greenBright('Kibbel Server'));
   } catch (error) {
     console.error(chalk.red('Kibbel Server'));
     console.error(error);
