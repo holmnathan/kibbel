@@ -9,9 +9,15 @@ import { BaseUuid, Pet, Food } from '.';
 // Shared TypeGraphQL descriptions and TypeORM comments
 const sharedComments = {
   fullName: 'The user’s full or legal name(s)',
-  chosenName: 'The user’s preferred way to be addressed',
+  displayName: 'The user’s preferred way to be addressed',
   imageUrl: 'URL of user’s uploaded profile image',
 };
+
+@ObjectType({ description: 'Login Response' })
+class LoginResponse {
+  @Field({ description: 'Base64 encoded JSON Web Token (JWT)' })
+  token!: string;
+}
 
 @Entity()
 @ObjectType({ description: 'User Schema' })
@@ -24,16 +30,15 @@ class User extends BaseUuid {
 
   @Field({
     nullable: true,
-    description: sharedComments.chosenName,
+    description: sharedComments.displayName,
   })
-  @Column({ comment: sharedComments.chosenName, nullable: true })
-  chosenName?: string;
+  @Column({ comment: sharedComments.displayName, nullable: true })
+  displayName?: string;
 
   @Field()
   @Column({ unique: true })
   email!: string;
 
-  @Field()
   @Column()
   password!: string;
 
@@ -58,4 +63,4 @@ class User extends BaseUuid {
 }
 
 export default User;
-export { User };
+export { User, LoginResponse };
