@@ -1,51 +1,62 @@
-import { Resolver, Query, Mutation, Arg, Authorized } from 'type-graphql';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  Arg,
+  Ctx,
+  Authorized,
+} from 'type-graphql';
 import { User, LoginResponse } from '../entities/';
-import { CreateUserInput, UpdateUserInput, LogInUserInput } from '../inputs';
+import { CreateUserInput, UpdateUserInput, LogInUserArgs } from '../inputs';
 import { hash, compare } from 'bcrypt';
-import { sign as jwtSign } from 'jsonwebtoken';
+import Context from '../Context';
+import { createAccessToken, createRefreshToken } from '../auth';
 
 @Resolver(User)
 class UserResolver {
+  // Find a User by ID --------------------------------------------------------
   @Query(() => User)
   user(@Arg('id') id: string) {
     return User.findOne({ where: { id } });
   }
 
+  // Get all Users ------------------------------------------------------------
   @Query(() => [User])
   users() {
     return User.find();
   }
 
+  // Log In a User ------------------------------------------------------------
   @Mutation(() => LoginResponse)
   async logInUser(
-    @Arg('credentials') { email, password }: LogInUserInput
+    @Args() { email, password }: LogInUserArgs,
+    @Ctx() { reply }: Context
   ): Promise<LoginResponse> {
-    const existingUser = await User.findOne({ where: { email } });
-    const { JWT_SECRET } = process.env;
-    let isValidPassword: boolean;
-    let token: string;
-
-    if (typeof JWT_SECRET !== 'string') {
-      console.log('JWT_SECRET environment variable is undefined');
-      throw new Error('Server Error');
+    // Check to see if user already exists
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      throw new Error('Incorrect email address or password');
     }
 
-    if (!existingUser) throw new Error('Incorrect email address or password');
-
-    isValidPassword = await compare(password, existingUser.password);
-
+    // Compare passwords
+    const isValidPassword = await compare(password, user.password);
     if (!isValidPassword) {
       throw new Error('Incorrect email address or password');
     }
 
-    token = jwtSign(
-      { userId: existingUser.id, email: existingUser.email },
-      JWT_SECRET,
-      { expiresIn: 900 }
-    );
-    return { token };
+    // Set a cookie with JWT refresh token as payload
+    const refreshToken = createRefreshToken(user);
+    reply.setCookie('kibbel', refreshToken, {
+      httpOnly: true,
+    });
+
+    // Return a JWT access token with LoginResponse as payload
+    const accessToken = createAccessToken(user);
+    return { accessToken };
   }
 
+  // Register a User ----------------------------------------------------------
   @Mutation(() => User)
   async createUser(
     @Arg('data') { email, password }: CreateUserInput,
@@ -66,6 +77,7 @@ class UserResolver {
     }
   }
 
+  // Update a User by ID ------------------------------------------------------
   @Mutation(() => User)
   @Authorized()
   async updateUser(@Arg('id') id: string, @Arg('data') data: UpdateUserInput) {
@@ -82,6 +94,7 @@ class UserResolver {
     }
   }
 
+  // Delete a User by ID ------------------------------------------------------
   @Mutation(() => Boolean)
   async deleteUser(@Arg('id') id: string) {
     try {
