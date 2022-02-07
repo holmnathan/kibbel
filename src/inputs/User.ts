@@ -1,19 +1,10 @@
-import { InputType, ArgsType, Field, Authorized } from 'type-graphql';
-import {
-  Min,
-  Max,
-  MaxLength,
-  Length,
-  ArrayMaxSize,
-  IsEmail,
-  IsFQDN,
-} from 'class-validator';
+import { InputType, ArgsType, Field } from 'type-graphql';
+import { MaxLength, IsEmail, IsFQDN } from 'class-validator';
 import { User } from '../entities/';
 
 @InputType({ description: 'Register a new user' })
 class CreateUserInput implements Partial<User> {
   @Field()
-  @MaxLength(30)
   fullName!: string;
 
   @Field({ nullable: true })
@@ -35,7 +26,6 @@ class CreateUserInput implements Partial<User> {
 @InputType({ description: 'Update an existing user profile' })
 class UpdateUserInput implements Partial<User> {
   @Field({ nullable: true })
-  @MaxLength(30)
   fullName?: string;
 
   @Field({ nullable: true })
@@ -54,8 +44,8 @@ class UpdateUserInput implements Partial<User> {
   imageUrl?: string;
 }
 
-@InputType({ description: 'Log a user in' })
-class LogInUserInput implements Partial<User> {
+@ArgsType()
+class LogInUserArgs {
   @Field()
   @IsEmail()
   email!: string;
@@ -64,4 +54,4 @@ class LogInUserInput implements Partial<User> {
   password!: string;
 }
 
-export { CreateUserInput, UpdateUserInput, LogInUserInput };
+export { CreateUserInput, UpdateUserInput, LogInUserArgs };
