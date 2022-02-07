@@ -8,32 +8,38 @@ import { buildSchema } from 'type-graphql';
 import { UserResolver } from './resolvers';
 import database from './plugins/database';
 import fastifyAppClosePlugin from './plugins/AppClose';
+import fastifyCookie, { FastifyCookieOptions } from 'fastify-cookie';
+import { authChecker } from './auth';
 
 // Import environment variables
 
-const SERVER_PORT =
-  process.env.SERVER_PORT && parseInt(process.env.SERVER_PORT)
-    ? process.env.SERVER_PORT
-    : 3000;
-const ENVIRONMENT = process.env.ENVIRONMENT ?? 'production';
+const PORT = process.env.PORT ?? 3000;
+const { NODE_ENV, COOKIE_SECRET } = process.env;
 
 const createServer = async (options: FastifyServerOptions = {}) => {
   const app = fastify(options);
 
-  const schema = await buildSchema({ resolvers: [UserResolver] });
+  const schema = await buildSchema({
+    resolvers: [UserResolver],
+    authChecker,
+  });
   const server = new ApolloServer({
     schema,
     plugins: [
       fastifyAppClosePlugin(app),
       ApolloServerPluginDrainHttpServer({ httpServer: app.server }),
     ],
+    context: ({ request, reply }) => ({ request, reply }),
   });
 
   await server.start();
   app.register(server.createHandler());
   app.register(database);
+  app.register(fastifyCookie, {
+    secret: COOKIE_SECRET,
+  } as FastifyCookieOptions);
 
-  app.listen(SERVER_PORT, (error, appUrl) => {
+  app.listen(PORT, (error, appUrl) => {
     if (error) app.log.error(error);
   });
 };
@@ -43,7 +49,7 @@ const startServer = async () => {
     await createServer({
       logger: {
         prettyPrint:
-          ENVIRONMENT === 'development'
+          NODE_ENV === 'development'
             ? {
                 translateTime: 'Sys:h:MM:ss TT',
                 ignore: 'pid,hostname',
