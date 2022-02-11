@@ -1,5 +1,5 @@
 import { Entity, Column, OneToMany, ManyToMany, JoinTable } from 'typeorm';
-import { ObjectType, Field, ID } from 'type-graphql';
+import { ObjectType, Field } from 'type-graphql';
 import { BaseUuid, Pet, Food } from '.';
 
 // Entities and Type Definitions ----------------------------------------------
@@ -12,12 +12,6 @@ const sharedComments = {
   displayName: 'The user’s preferred way to be addressed',
   imageUrl: 'URL of user’s uploaded profile image',
 };
-
-@ObjectType({ description: 'Login Response' })
-class LoginResponse {
-  @Field({ description: 'Base64 encoded JSON Web Token (JWT)' })
-  accessToken!: string;
-}
 
 @Entity()
 @ObjectType({ description: 'User Schema' })
@@ -60,6 +54,14 @@ class User extends BaseUuid {
   @ManyToMany(() => Food)
   @JoinTable()
   favoriteFoods!: Food[];
+}
+
+@ObjectType({ description: 'Login Response' })
+class LoginResponse {
+  @Field(() => User, { description: 'The logged in user' })
+  user!: User;
+  @Field({ description: 'Base64 encoded JSON Web Token (JWT)' })
+  accessToken!: string;
 }
 
 export default User;
