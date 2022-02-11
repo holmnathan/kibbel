@@ -53,7 +53,7 @@ class UserResolver {
 
     // Return a JWT access token with LoginResponse as payload
     const accessToken = createAccessToken(user);
-    return { accessToken };
+    return { accessToken, user };
   }
 
   // Register a User ----------------------------------------------------------
