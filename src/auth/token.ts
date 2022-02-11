@@ -30,4 +30,18 @@ const verifyAccessToken = (jwtToken: string) => {
   }
 };
 
-export { createAccessToken, createRefreshToken, verifyAccessToken };
+const verifyRefreshToken = (jwtToken: string) => {
+  try {
+    const payload = verify(jwtToken, REFRESH_TOKEN_SECRET);
+    return payload;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export {
+  createAccessToken,
+  createRefreshToken,
+  verifyAccessToken,
+  verifyRefreshToken,
+};
