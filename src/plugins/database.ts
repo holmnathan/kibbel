@@ -53,3 +53,4 @@ const database = fastifyPlugin(async (server) => {
 });
 
 export default database;
+export { database };

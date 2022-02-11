@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { ApolloServerPlugin } from 'apollo-server-plugin-base';
 
-const fastifyAppClosePlugin = (app: FastifyInstance): ApolloServerPlugin => {
+const appClose = (app: FastifyInstance): ApolloServerPlugin => {
   return {
     async serverWillStart() {
       return {
@@ -13,4 +13,5 @@ const fastifyAppClosePlugin = (app: FastifyInstance): ApolloServerPlugin => {
   };
 };
 
-export default fastifyAppClosePlugin;
+export default appClose;
+export { appClose };
