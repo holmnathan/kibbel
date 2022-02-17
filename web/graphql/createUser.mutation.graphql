@@ -1,0 +1,22 @@
+mutation createUser(
+  $fullName: String!
+  $displayName: String
+  $email: String!
+  $password: String!
+  $imageUrl: String
+) {
+  createUser(
+    data: {
+      fullName: $fullName
+      displayName: $displayName
+      email: $email
+      password: $password
+      imageUrl: $imageUrl
+    }
+  ) {
+    fullName
+    displayName
+    email
+    imageUrl
+  }
+}
