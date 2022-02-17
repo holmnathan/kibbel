@@ -29,7 +29,7 @@ class UserResolver {
 
   // Log In a User ------------------------------------------------------------
   @Mutation(() => LoginResponse)
-  async logInUser(
+  async signInUser(
     @Args() { email, password }: LogInUserArgs,
     @Ctx() { reply }: Context
   ): Promise<LoginResponse> {
@@ -56,7 +56,7 @@ class UserResolver {
     return { accessToken, user };
   }
 
-  // Register a User ----------------------------------------------------------
+  // Create a User Account ----------------------------------------------------
   @Mutation(() => User)
   async createUser(
     @Arg('data') { email, password }: CreateUserInput,
