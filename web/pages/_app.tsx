@@ -1,8 +1,25 @@
-import '../styles/globals.css'
-import type { AppProps } from 'next/app'
+import "../styles/globals.css";
+import "bootstrap/dist/css/bootstrap.css";
+import type { AppProps } from "next/app";
+import client from "../apollo-client";
+import { ApolloProvider } from "@apollo/client";
+import { useEffect } from "react";
+import Layout from "../components/layout";
 
 function MyApp({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />
+  useEffect(() => {
+    typeof document !== undefined
+      ? require("bootstrap/dist/js/bootstrap")
+      : null;
+  }, []);
+
+  return (
+    <ApolloProvider client={client}>
+      <Layout>
+        <Component {...pageProps} />
+      </Layout>
+    </ApolloProvider>
+  );
 }
 
-export default MyApp
+export default MyApp;
