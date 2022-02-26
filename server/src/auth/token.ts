@@ -1,47 +1,73 @@
-import { sign, verify } from 'jsonwebtoken';
+import { sign, verify, JwtPayload } from 'jsonwebtoken';
 import { User } from '../entities';
 
-const { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } = process.env;
+// Type Definitions -----------------------------------------------------------
 
-const createRefreshToken = ({ id, email }: User) => {
-  const refreshToken = sign(
-    { id, email },
-    REFRESH_TOKEN_SECRET,
-    { expiresIn: '7d' } // Expires in 7 days
-  );
-  return refreshToken;
+type TTokenType = {
+  tokenType: 'ACCESS' | 'REFRESH';
+  secret?: string;
 };
 
-const createAccessToken = ({ id, email }: User) => {
-  const accessToken = sign(
-    { id, email },
-    ACCESS_TOKEN_SECRET,
-    { expiresIn: 900 } // 15 minutes in seconds
-  );
-  return accessToken;
+interface IVerifyTokenInput extends TTokenType {
+  token: string;
+}
+
+interface ICreateTokenInput extends TTokenType {
+  user: User;
+}
+
+// Verify object is an instance of JwtPayload interface
+const isJwtPayload = (object: any): object is JwtPayload => {
+  return true;
 };
 
-const verifyAccessToken = (jwtToken: string) => {
+// Get token secret environment variable
+const getTokenSecret = ({ secret, tokenType }: TTokenType): string => {
+  // provide secret argument | ACCESS_TOKEN_SECRET || REFRESH_TOKEN_SECRET
+  const secretName = secret ?? `${tokenType}_TOKEN_SECRET`;
+
+  const TOKEN_SECRET = process.env[secretName];
+  // Verify a value is assigned to environment variable
+  if (!TOKEN_SECRET)
+    throw new Error(
+      `${tokenType}_TOKEN_SECRET not provided as environment variable`
+    );
+  return TOKEN_SECRET;
+};
+
+// Sign JSON Web Token (JWT) --------------------------------------------------
+const createToken = ({
+  user: { id, email },
+  secret,
+  tokenType,
+}: ICreateTokenInput) => {
+  // Get correct environment secret from tokenType
+  const TOKEN_SECRET = getTokenSecret({ tokenType, secret });
+  // Token validity duration in seconds
+  const expiresIn = {
+    REFRESH: 604800, // 7 days
+    ACCESS: 900, // 15 minutes
+  };
+  // Sign JWT
+  const token = sign({ id, email }, TOKEN_SECRET, {
+    expiresIn: expiresIn[tokenType],
+  });
+  return token;
+};
+
+// Verify JSON Web Token (JWT) ------------------------------------------------
+const verifyToken = ({ token, tokenType, secret }: IVerifyTokenInput) => {
   try {
-    const payload = verify(jwtToken, ACCESS_TOKEN_SECRET);
+    // Get correct environment secret from tokenType
+    const TOKEN_SECRET = getTokenSecret({ tokenType, secret });
+    // Verify JWT
+    const payload = verify(token, TOKEN_SECRET);
+    // Verify payload
+    if (!isJwtPayload(payload)) throw new Error('Invalid JWT payload');
     return payload;
   } catch (error) {
     console.log(error);
   }
 };
 
-const verifyRefreshToken = (jwtToken: string) => {
-  try {
-    const payload = verify(jwtToken, REFRESH_TOKEN_SECRET);
-    return payload;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-export {
-  createAccessToken,
-  createRefreshToken,
-  verifyAccessToken,
-  verifyRefreshToken,
-};
+export { createToken, verifyToken };
