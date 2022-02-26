@@ -1,10 +1,10 @@
 import "../styles/globals.css";
 import "bootstrap/dist/css/bootstrap.css";
 import type { AppProps } from "next/app";
-import client from "../apollo-client";
+import { client } from "../library/apollo";
 import { ApolloProvider } from "@apollo/client";
 import { useEffect } from "react";
-import Layout from "../components/layout";
+import { Layout } from "../components";
 
 function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
