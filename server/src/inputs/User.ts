@@ -1,18 +1,33 @@
 import { InputType, ArgsType, Field } from 'type-graphql';
-import { MaxLength, IsEmail, IsFQDN } from 'class-validator';
+import {
+  MaxLength,
+  IsEmail,
+  IsFQDN,
+  IsNotEmpty,
+  ValidationArguments,
+} from 'class-validator';
+import { IsUserUnique } from '../plugins/IsUserUnique';
 import { User } from '../entities/';
 
 @InputType({ description: 'Register a new user' })
 class CreateUserInput implements Partial<User> {
   @Field()
+  @IsNotEmpty({ message: 'Enter a full name' })
   fullName!: string;
 
   @Field({ nullable: true })
-  @MaxLength(30)
+  @MaxLength(32, {
+    message: ({ constraints }: ValidationArguments) => {
+      return `Display name must be ${constraints[0]} characters or less`;
+    },
+  })
   displayName?: string;
 
   @Field()
-  @IsEmail()
+  @IsEmail([], { message: 'Enter a valid email address' })
+  @IsUserUnique({
+    message: 'This email address is not available. Use a different address',
+  })
   email!: string;
 
   @Field()
