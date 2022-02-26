@@ -7,18 +7,34 @@ import {
   Ctx,
   Authorized,
 } from 'type-graphql';
-import { User, LoginResponse } from '../entities/';
+import { User, SigninResponse } from '../entities/';
 import { CreateUserInput, UpdateUserInput, LogInUserArgs } from '../inputs';
 import { hash, compare } from 'bcrypt';
 import Context from '../Context';
-import { createAccessToken, createRefreshToken } from '../auth';
+import { createToken, verifyToken } from '../auth';
+import { AuthenticationError, UserInputError } from 'apollo-server-fastify';
 
 @Resolver(User)
 class UserResolver {
   // Find a User by ID --------------------------------------------------------
+  @Authorized()
   @Query(() => User)
-  user(@Arg('id') id: string) {
-    return User.findOne({ where: { id } });
+  async currentUser(
+    @Ctx()
+    { request: { headers } }: Context
+  ) {
+    if (!headers.authorization)
+      throw new AuthenticationError('Request did not contain an access token');
+    const payload = verifyToken({
+      token: headers.authorization,
+      tokenType: 'ACCESS',
+    });
+
+    const user = await User.findOne({ id: payload!.id });
+
+    if (!user) throw new UserInputError('User not found with ID');
+
+    return user;
   }
 
   // Get all Users ------------------------------------------------------------
@@ -28,53 +44,48 @@ class UserResolver {
   }
 
   // Log In a User ------------------------------------------------------------
-  @Mutation(() => LoginResponse)
+  @Mutation(() => SigninResponse)
   async signInUser(
     @Args() { email, password }: LogInUserArgs,
     @Ctx() { reply }: Context
-  ): Promise<LoginResponse> {
+  ): Promise<SigninResponse> {
     // Check to see if user already exists
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({ email });
     if (!user) {
-      throw new Error('Incorrect email address or password');
+      throw new UserInputError('Incorrect email address or password');
     }
 
     // Compare passwords
     const isValidPassword = await compare(password, user.password);
     if (!isValidPassword) {
-      throw new Error('Incorrect email address or password');
+      throw new UserInputError('Incorrect email address or password');
     }
 
     // Set a cookie with JWT refresh token as payload
-    const refreshToken = createRefreshToken(user);
+    const refreshToken = createToken({ user, tokenType: 'REFRESH' });
     reply.setCookie('kibbel', refreshToken, {
       httpOnly: true,
     });
 
-    // Return a JWT access token with LoginResponse as payload
-    const accessToken = createAccessToken(user);
-    return { accessToken, user };
+    // Return a JWT access token with SigninResponse as payload
+    const token = createToken({ user, tokenType: 'ACCESS' });
+    return { token, user };
   }
 
   // Create a User Account ----------------------------------------------------
   @Mutation(() => User)
   async createUser(
-    @Arg('data') { email, password }: CreateUserInput,
+    @Arg('data') { password }: CreateUserInput,
     @Arg('data') data: CreateUserInput
   ): Promise<User | false> {
-    try {
-      const existingUser = await User.findOne({ where: { email } });
-      if (existingUser) throw new Error('User account already exists');
+    const user = User.create(data);
+    user['password'] = await hash(password, 10);
 
-      const user = User.create(data);
-      user.password = await hash(password, 10);
+    await user.save();
 
-      await user.save();
-      return user;
-    } catch (error) {
-      console.log(error);
-      return false;
-    }
+    if (!user) throw new UserInputError('Testing 1234');
+
+    return user;
   }
 
   // Update a User by ID ------------------------------------------------------
