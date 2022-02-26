@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { NextPage } from "next";
 
-const Home = () => {
+const Home: NextPage = () => {
   return (
     <>
       <main className="px-3">
