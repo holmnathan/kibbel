@@ -1,4 +1,4 @@
-import NavBar from "./navbar";
+import { NavBar } from "./";
 import type { ReactNode } from "react";
 import Head from "next/head";
 
@@ -19,4 +19,4 @@ const Layout = ({ children }: TProps) => {
   );
 };
 
-export default Layout;
+export { Layout };
