@@ -1,6 +1,6 @@
 import { AuthChecker } from 'type-graphql';
 import Context from '../Context';
-import { verifyAccessToken } from './token';
+import { verifyToken } from './token';
 
 const authChecker: AuthChecker<Context> = ({ context: { request } }) => {
   // Verify request contains an “Authorization” header
@@ -10,7 +10,7 @@ const authChecker: AuthChecker<Context> = ({ context: { request } }) => {
   }
 
   // Verify “Authorization” header is from a valid user
-  return !!verifyAccessToken(authorization);
+  return !!verifyToken({ token: authorization, tokenType: 'ACCESS' });
 };
 
 export default authChecker;
