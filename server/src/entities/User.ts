@@ -57,12 +57,12 @@ class User extends BaseUuid {
 }
 
 @ObjectType({ description: 'Login Response' })
-class LoginResponse {
+class SigninResponse {
   @Field(() => User, { description: 'The logged in user' })
   user!: User;
   @Field({ description: 'Base64 encoded JSON Web Token (JWT)' })
-  accessToken!: string;
+  token!: string;
 }
 
 export default User;
-export { User, LoginResponse };
+export { User, SigninResponse };
