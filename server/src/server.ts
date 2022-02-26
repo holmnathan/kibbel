@@ -8,12 +8,7 @@ import { buildSchema } from 'type-graphql';
 import { UserResolver } from './resolvers';
 import { database, appClose } from './plugins';
 import fastifyCookie, { FastifyCookieOptions } from 'fastify-cookie';
-import {
-  authChecker,
-  verifyRefreshToken,
-  createAccessToken,
-  createRefreshToken,
-} from './auth';
+import { authChecker, verifyToken, createToken } from './auth';
 import { User } from './entities';
 
 // Import environment variables
@@ -50,24 +45,37 @@ const createServer = async (options: FastifyServerOptions = {}) => {
   });
 
   app.post('/refresh-token', async (request, reply) => {
+    // Get existing refresh token from request cookie
     const refreshToken = request.cookies.kibbel;
+
     if (!refreshToken) {
       app.log.warn('Refresh Token not found');
-      return { ok: false, accessToken: null };
+      return { ok: false, token: null };
     }
-    const payload = verifyRefreshToken(refreshToken);
+    const payload = verifyToken({ token: refreshToken, tokenType: 'REFRESH' });
     if (!payload) {
-      app.log.warn('Refresh Token not valid');
-      return { ok: false, accessToken: null };
+      app.log.warn('Invalid Refresh Token');
+      return { ok: false, token: null };
     }
 
     const user = await User.findOne({ id: payload.id });
     if (!user) {
-      app.log.warn('Refresh Token not valid');
-      return { ok: false, accessToken: null };
+      app.log.warn('Invalid Refresh Token');
+      return { ok: false, token: null };
     }
-    reply.cookie('kibbel', createRefreshToken(user), { httpOnly: true });
-    return { ok: true, accessToken: createAccessToken(user) };
+
+    // Refresh token is valid:
+
+    // Create a new refresh token and set as a cookie on client
+    const refreshtoken = createToken({
+      user,
+      tokenType: 'REFRESH',
+    });
+    reply.cookie('kibbel', refreshtoken, { httpOnly: true });
+
+    // Create a new access token and return to client
+    const token = createToken({ user, tokenType: 'ACCESS' });
+    return { ok: true, token };
   });
 };
 
