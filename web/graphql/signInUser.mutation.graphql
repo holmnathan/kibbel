@@ -1,6 +1,6 @@
 mutation signInUser($email: String!, $password: String!) {
   signInUser(email: $email, password: $password) {
-    accessToken
+    token
     user {
       email
       fullName
