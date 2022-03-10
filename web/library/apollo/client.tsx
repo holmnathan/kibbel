@@ -14,8 +14,11 @@ import type {
 } from "@apollo/client";
 import type { GetServerSidePropsContext } from "next";
 import { AuthLink } from "./AuthLink";
+import { TokenRefreshLink } from "apollo-link-token-refresh";
+import { AccessToken } from "../AccessToken";
 
 let client: ApolloClient<NormalizedCacheObject>;
+const accessToken = new AccessToken();
 
 // Check if context is server side or client side
 const isServerSide = (): boolean => {
@@ -28,18 +31,24 @@ const createApolloClient = (context?: GetServerSidePropsContext) => {
     credentials: "same-origin",
   };
 
-  const httpLink = new HttpLink(httpOptions);
+  const refreshLink = new TokenRefreshLink({
+    accessTokenField: "token",
+    isTokenValidOrUndefined: accessToken.isTokenValidOrUndefined,
+    fetchAccessToken: accessToken.refresh,
+    handleFetch: (newToken) => (accessToken.token = newToken),
+  });
   const authLink = new AuthLink();
+  const httpLink = new HttpLink(httpOptions);
 
   return new ApolloClient({
     ssrMode: isServerSide(),
-    link: from([authLink, httpLink]),
+    link: from([refreshLink, authLink, httpLink]),
     cache: new InMemoryCache(),
   });
 };
 
 const initializeApollo = (initialState = undefined, context = undefined) => {
-  client = client ?? createApolloClient(context);
+  client = client ?? createApolloClient();
 
   if (initialState) {
     const existingCache = client.extract();
@@ -48,4 +57,4 @@ const initializeApollo = (initialState = undefined, context = undefined) => {
 
 client = createApolloClient();
 
-export { client };
+export { client, accessToken };
