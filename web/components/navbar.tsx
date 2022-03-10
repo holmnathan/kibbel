@@ -11,6 +11,9 @@ const NavBar = () => {
       <Link href="/signup">
         <a>Create Account</a>
       </Link>
+      <Link href="/dashboard">
+        <a>Dashboard</a>
+      </Link>
     </>
   );
 };
