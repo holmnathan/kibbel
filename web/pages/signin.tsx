@@ -2,19 +2,21 @@ import {
   SignInUserDocument,
   SignInUserMutationVariables,
 } from "../graphql/generated";
-import { useMutation } from "@apollo/client";
+import { ApolloError, useMutation } from "@apollo/client";
 import { Formik, Form } from "formik";
 import * as yup from "yup";
 import { InputField } from "../components/Form";
 import { Button, Spinner } from "react-bootstrap";
 import { NextPage } from "next";
-import { setToken } from "../library/auth";
+import { accessToken } from "../library/apollo/client";
 import { useRouter } from "next/router";
+import { useState } from "react";
 
 const SignIn: NextPage = () => {
   const router = useRouter();
-  const [signInUser, { data, error }] = useMutation(SignInUserDocument);
-  const token = data?.signInUser.token;
+  const [submitionErrorMessage, setSubmitionErrorMessage] =
+    useState<string | null>(null);
+  const [signInUser, { error }] = useMutation(SignInUserDocument);
   const initialValues: SignInUserMutationVariables = {
     email: "",
     password: "",
@@ -39,13 +41,25 @@ const SignIn: NextPage = () => {
           try {
             await signInUser({
               variables: values,
+              onError: (error) => {
+                throw error;
+              },
+              onCompleted: ({ signInUser: { token } }) => {
+                accessToken.token = token;
+                router.push("/dashboard");
+              },
             });
-            console.log(token);
-            if (!token) throw new Error("Unable to retrieve token");
-            setToken(token);
-            router.push("/dashboard");
           } catch (error) {
-            console.log(error);
+            console.error(error);
+
+            // Sanitize error message displayed to user
+            if (error instanceof ApolloError) {
+              const {
+                extensions: { code },
+              } = error.graphQLErrors[0];
+              if (code === "BAD_USER_INPUT")
+                setSubmitionErrorMessage(error.message);
+            }
           }
           setSubmitting(false);
         }}
@@ -74,7 +88,7 @@ const SignIn: NextPage = () => {
           </Form>
         )}
       </Formik>
-      <h1>{error ? error.message : null}</h1>
+      <h1>{submitionErrorMessage}</h1>
     </div>
   );
 };
