@@ -10,11 +10,14 @@ import { database, appClose } from './plugins';
 import fastifyCookie, { FastifyCookieOptions } from 'fastify-cookie';
 import { authChecker, verifyToken, createToken } from './auth';
 import { User } from './entities';
+import fastifyCors from 'fastify-cors';
 
 // Import environment variables
 
 const PORT = process.env.PORT ?? 3000;
-const { NODE_ENV, REFRESH_TOKEN_SECRET } = process.env;
+const { NODE_ENV } = process.env;
+
+const isProduction = NODE_ENV === 'production';
 
 const createServer = async (options: FastifyServerOptions = {}) => {
   const app = fastify(options);
@@ -23,6 +26,7 @@ const createServer = async (options: FastifyServerOptions = {}) => {
     resolvers: [UserResolver],
     authChecker,
   });
+
   const server = new ApolloServer({
     schema,
     plugins: [
@@ -36,9 +40,20 @@ const createServer = async (options: FastifyServerOptions = {}) => {
   await server.start();
   app.register(server.createHandler());
   app.register(database);
-  app.register(fastifyCookie, {
-    secret: REFRESH_TOKEN_SECRET,
-  } as FastifyCookieOptions);
+  app.register(fastifyCors, {
+    credentials: true,
+    origin: 'http://localhost:8282',
+  });
+
+  const fastifyCookieOptions: FastifyCookieOptions = {
+    parseOptions: {
+      domain: 'http://localhost:8282',
+      httpOnly: true,
+      sameSite: isProduction ? 'strict' : 'lax',
+      secure: isProduction,
+    },
+  };
+  app.register(fastifyCookie, fastifyCookieOptions);
 
   app.listen(PORT, (error) => {
     if (error) app.log.error(error);
@@ -47,6 +62,7 @@ const createServer = async (options: FastifyServerOptions = {}) => {
   app.post('/refresh-token', async (request, reply) => {
     // Get existing refresh token from request cookie
     const refreshToken = request.cookies.kibbel;
+    console.log(refreshToken);
 
     if (!refreshToken) {
       app.log.warn('Refresh Token not found');
@@ -71,7 +87,7 @@ const createServer = async (options: FastifyServerOptions = {}) => {
       user,
       tokenType: 'REFRESH',
     });
-    reply.cookie('kibbel', refreshtoken, { httpOnly: true });
+    reply.cookie('kibbel', refreshtoken);
 
     // Create a new access token and return to client
     const token = createToken({ user, tokenType: 'ACCESS' });
