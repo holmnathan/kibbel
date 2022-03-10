@@ -63,8 +63,9 @@ class UserResolver {
 
     // Set a cookie with JWT refresh token as payload
     const refreshToken = createToken({ user, tokenType: 'REFRESH' });
+    const maxAge = 1000 * 60 * 60 * 24 * 7;
     reply.setCookie('kibbel', refreshToken, {
-      httpOnly: true,
+      maxAge,
     });
 
     // Return a JWT access token with SigninResponse as payload
