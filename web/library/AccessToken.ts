@@ -13,7 +13,6 @@ class AccessToken {
   public set token(newToken: string) {
     console.log("SETSETSETSETSETSETSETSETSET");
     console.log(newToken);
-    console.log("SETSETSETSETSETSETSETSETSET");
     this._token = newToken;
   }
 
@@ -30,20 +29,21 @@ class AccessToken {
 
   public isTokenValidOrUndefined = (): boolean => {
     console.log("ISVALIDISVALIDISVALIDISVALID");
-    console.log(this._token);
-    if (!this._token) return true;
+    console.log(!!this._token);
+    // if (!this._token) return true;
 
     try {
       const { exp } = jwtDecode<JwtPayload>(this._token);
       if (!exp) return false;
 
+      console.log(`Expired ${Date.now() >= exp * 1000}`);
       return Date.now() >= exp * 1000;
     } catch {
       return false;
     }
   };
 
-  public refresh = async (): Promise<Response> => {
+  public refresh = async () => {
     console.log("REFRESHREFRESHREFRESHREFRESHREFRESHREFRESH");
     // Import refresh token URI from environment variable
     const { NEXT_PUBLIC_REFRESH_TOKEN_URI } = process.env;
@@ -54,16 +54,10 @@ class AccessToken {
         "“NEXT_PUBLIC_REFRESH_TOKEN_URI” environment variable not provided"
       );
 
-    const response = await fetch(NEXT_PUBLIC_REFRESH_TOKEN_URI, {
+    return await fetch(NEXT_PUBLIC_REFRESH_TOKEN_URI, {
       method: "POST",
       credentials: "include",
     });
-    console.log(await response.json());
-    const { token } = await response.json();
-    console.log("NEWTOKEN!NEWTOKEN!NEWTOKEN!NEWTOKEN!");
-    console.log(token);
-    console.log("NEWTOKEN!NEWTOKEN!NEWTOKEN!NEWTOKEN!");
-    return token;
   };
 }
 
