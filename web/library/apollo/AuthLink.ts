@@ -1,11 +1,17 @@
 import { ApolloLink, Observable } from "@apollo/client";
 import type { FetchResult } from "@apollo/client";
 import { AccessToken } from "../AccessToken";
-import { accessToken } from ".";
 
 import type { Operation, NextLink } from "@apollo/client";
 
 class AuthLink extends ApolloLink {
+  accessToken: AccessToken;
+
+  constructor(accessToken: AccessToken) {
+    super();
+    this.accessToken = accessToken;
+  }
+
   public setAuthHeader = (
     operation: Operation,
     accessToken: AccessToken
@@ -26,8 +32,7 @@ class AuthLink extends ApolloLink {
       );
     }
     // Set authorization token in request header
-    console.log(accessToken.token);
-    this.setAuthHeader(operation, accessToken);
+    this.setAuthHeader(operation, this.accessToken);
 
     return forward(operation);
   }

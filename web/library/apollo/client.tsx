@@ -28,23 +28,30 @@ const isServerSide = (): boolean => {
 const createApolloClient = (context?: GetServerSidePropsContext) => {
   const httpOptions: HttpOptions = {
     uri: process.env.NEXT_PUBLIC_GRAPHQL_URI,
-    credentials: "same-origin",
+    credentials: "include",
   };
 
-  const refreshLink = new TokenRefreshLink({
+  const refreshLinkOptions: TokenRefreshLink.Options<string> = {
     accessTokenField: "token",
     isTokenValidOrUndefined: accessToken.isTokenValidOrUndefined,
     fetchAccessToken: accessToken.refresh,
     handleFetch: (newToken) => (accessToken.token = newToken),
-  });
-  const authLink = new AuthLink();
+    handleError: (error) => {
+      console.log(error);
+    },
+  };
+
+  const refreshLink = new TokenRefreshLink(refreshLinkOptions);
+  const authLink = new AuthLink(accessToken);
   const httpLink = new HttpLink(httpOptions);
 
-  return new ApolloClient({
+  const apolloOptions: ApolloClientOptions<NormalizedCacheObject> = {
     ssrMode: isServerSide(),
     link: from([refreshLink, authLink, httpLink]),
     cache: new InMemoryCache(),
-  });
+  };
+
+  return new ApolloClient(apolloOptions);
 };
 
 const initializeApollo = (initialState = undefined, context = undefined) => {
