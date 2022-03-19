@@ -1,7 +1,7 @@
 // Kibbel API Server ----------------------------------------------------------
 import 'reflect-metadata';
 import fastify, { FastifyServerOptions } from 'fastify';
-import { ApolloServer } from 'apollo-server-fastify';
+import { ApolloServer, ApolloServerFastifyConfig } from 'apollo-server-fastify';
 import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
 import chalk from 'chalk';
 import { buildSchema } from 'type-graphql';
@@ -10,60 +10,68 @@ import { database, appClose } from './plugins';
 import fastifyCookie, { FastifyCookieOptions } from 'fastify-cookie';
 import { authChecker, verifyToken, createToken } from './auth';
 import { User } from './entities';
-import fastifyCors from 'fastify-cors';
+import fastifyCors, { FastifyCorsOptions } from 'fastify-cors';
 
-// Import environment variables
-
+// Environment variables ------------------------------------------------------
 const PORT = process.env.PORT ?? 3000;
-const { NODE_ENV } = process.env;
+const CORS_ORIGIN_CLIENTS = process.env.CORS_ORIGIN_CLIENTS.split(',');
+const isProduction = process.env.NODE_ENV === 'production';
 
-const isProduction = NODE_ENV === 'production';
-
+// Create Fastify Server  -----------------------------------------------------
 const createServer = async (options: FastifyServerOptions = {}) => {
+  // Instantiate Fastify Server
   const app = fastify(options);
 
-  const schema = await buildSchema({
-    resolvers: [UserResolver],
-    authChecker,
-  });
-
-  const server = new ApolloServer({
-    schema,
+  const apolloServerOptions: ApolloServerFastifyConfig = {
+    schema: await buildSchema({
+      resolvers: [UserResolver],
+      authChecker,
+    }),
     plugins: [
       appClose(app),
       ApolloServerPluginDrainHttpServer({ httpServer: app.server }),
     ],
-    context: ({ request, reply }) => ({ request, reply }),
-    introspection: NODE_ENV !== 'production',
-  });
+    context: ({ request, reply }) => ({
+      request,
+      reply,
+    }),
+    introspection: !isProduction,
+  };
 
+  // Instantiate Apollo Server
+  const server = new ApolloServer(apolloServerOptions);
   await server.start();
-  app.register(server.createHandler());
-  app.register(database);
-  app.register(fastifyCors, {
+
+  // Register Fastify Plugins
+
+  const fastifyCorsOptions: FastifyCorsOptions = {
     credentials: true,
-    origin: 'http://localhost:8282',
-  });
+    origin: CORS_ORIGIN_CLIENTS,
+  };
 
   const fastifyCookieOptions: FastifyCookieOptions = {
     parseOptions: {
-      domain: 'http://localhost:8282',
       httpOnly: true,
       sameSite: isProduction ? 'strict' : 'lax',
       secure: isProduction,
+      path: '/refresh-token',
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 Days
+      expires: new Date('2022-12-31'),
     },
   };
+
+  app.register(fastifyCors, fastifyCorsOptions);
+  app.register(database);
+  app.register(server.createHandler({ cors: false })); // Apollo defers to CORS options in Fastify
   app.register(fastifyCookie, fastifyCookieOptions);
 
-  app.listen(PORT, (error) => {
-    if (error) app.log.error(error);
-  });
-
+  // Refresh Token Route
   app.post('/refresh-token', async (request, reply) => {
     // Get existing refresh token from request cookie
     const refreshToken = request.cookies.kibbel;
     console.log(refreshToken);
 
+    // Verify cookie from request
     if (!refreshToken) {
       app.log.warn('Refresh Token not found');
       return { ok: false, token: null };
@@ -81,32 +89,36 @@ const createServer = async (options: FastifyServerOptions = {}) => {
     }
 
     // Refresh token is valid:
-
     // Create a new refresh token and set as a cookie on client
     const refreshtoken = createToken({
       user,
       tokenType: 'REFRESH',
     });
+
     reply.cookie('kibbel', refreshtoken);
 
     // Create a new access token and return to client
     const token = createToken({ user, tokenType: 'ACCESS' });
     return { ok: true, token };
   });
+
+  app.listen(PORT, (error) => {
+    if (error) app.log.error(error);
+  });
 };
 
+// Start Fastify Server  ------------------------------------------------------
 const startServer = async () => {
   try {
     await createServer({
       logger: {
-        prettyPrint:
-          NODE_ENV === 'development'
-            ? {
-                translateTime: 'Sys:h:MM:ss TT',
-                ignore: 'pid,hostname',
-                levelFirst: true,
-              }
-            : false,
+        prettyPrint: !isProduction
+          ? {
+              translateTime: 'Sys:h:MM:ss TT',
+              ignore: 'pid,hostname',
+              levelFirst: true,
+            }
+          : false,
       },
     });
     console.error(chalk.greenBright('Kibbel Server'));
