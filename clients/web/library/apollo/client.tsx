@@ -17,7 +17,7 @@ import type { GetServerSidePropsContext } from "next";
 import { TokenRefreshLink } from "apollo-link-token-refresh";
 
 // Import Local Modules
-import { AuthLink } from "@kibbel/library/apollo";
+import { AuthLink } from "@kibbel/library/apollo/AuthLink";
 import { AccessToken } from "@kibbel/library/AccessToken";
 
 let client: ApolloClient<NormalizedCacheObject>;
