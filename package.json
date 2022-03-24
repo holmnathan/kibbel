@@ -1,0 +1,31 @@
+{
+  "name": "kibbel",
+  "version": "1.0.0",
+  "description": "Calorie calculator and meal planner for cats and dogs",
+  "scripts": {
+    "api": "npm run dev --workspace kibbel-api",
+    "web": "npm run dev --workspace kibbel-web"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/holmnathan/kibbel.git"
+  },
+  "keywords": [
+    "pets",
+    "calories",
+    "meal-planner"
+  ],
+  "author": "Nathan Holm",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/holmnathan/kibbel/issues"
+  },
+  "homepage": "https://github.com/holmnathan/kibbel#readme",
+  "workspaces": [
+    "api",
+    "clients/*"
+  ],
+  "dependencies": {
+    "@tsconfig/node16-strictest": "^1.0.0"
+  }
+}

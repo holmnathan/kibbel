@@ -1,0 +1,13 @@
+{
+  "extends": "@tsconfig/next/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".", // Required if “paths” is specified
+    "paths": {
+      // Relative to "baseUrl"
+      "shared": ["../../shared"]
+    }
+  },
+  "references": [{ "path": "../../shared" }],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
+}

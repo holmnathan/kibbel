@@ -1,6 +1,5 @@
 {
-  "name": "web",
-  "private": true,
+  "name": "kibbel-web",
   "scripts": {
     "dev": "next dev --port 8282",
     "build": "next build",
@@ -12,28 +11,48 @@
     "@apollo/client": "^3.5.8",
     "apollo-link-token-refresh": "^0.4.0",
     "formik": "^2.2.9",
-    "graphql": "^16.3.0",
+    "graphql": "^15.0.0",
     "jwt-decode": "^3.1.2",
-    "next": "12.0.10",
+    "next": "12.1.0",
     "react": "17.0.2",
     "yup": "^0.32.11"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "^1.9.0",
+    "@graphql-codegen/cli": "^2.6.2",
     "@graphql-codegen/typed-document-node": "^2.2.4",
     "@graphql-codegen/typescript": "^2.4.3",
     "@graphql-codegen/typescript-operations": "^2.3.0",
+    "@tsconfig/next": "^1.0.2",
     "@types/bootstrap": "^5.1.9",
-    "@types/node": "17.0.17",
+    "@types/node": "^17.0.23",
     "@types/react": "17.0.39",
     "@types/react-bootstrap": "^0.32.29",
     "bootstrap": "^5.1.3",
     "eslint": "8.8.0",
     "eslint-config-next": "12.0.10",
-    "install": "^0.13.0",
-    "npm": "^8.5.0",
     "prettier": "^2.5.1",
     "react-bootstrap": "^2.1.2",
-    "typescript": "4.5.5"
-  }
+    "ts-node": "^9.0.0",
+    "typescript": "^4.6.2"
+  },
+  "description": "Front end web client for Kibbel App",
+  "version": "1.0.0",
+  "main": "dist/server.js",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/holmnathan/kibbel.git"
+  },
+  "keywords": [
+    "pet",
+    "nutrition",
+    "calories",
+    "cat",
+    "dog"
+  ],
+  "author": "Nathan Holm",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/holmnathan/kibbel/issues"
+  },
+  "homepage": "https://github.com/holmnathan/kibbel#readme"
 }
