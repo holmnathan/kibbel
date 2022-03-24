@@ -1,11 +1,11 @@
 import { sign, verify, JwtPayload } from 'jsonwebtoken';
-import { User } from '../entities';
+import type { User } from '@kibbel/entities';
 
 // Type Definitions -----------------------------------------------------------
 
 type TTokenType = {
   tokenType: 'ACCESS' | 'REFRESH';
-  secret?: string;
+  secret?: string | undefined;
 };
 
 interface IVerifyTokenInput extends TTokenType {
@@ -17,7 +17,7 @@ interface ICreateTokenInput extends TTokenType {
 }
 
 // Verify object is an instance of JwtPayload interface
-const isJwtPayload = (object: any): object is JwtPayload => {
+const isJwtPayload = (_object: any): _object is JwtPayload => {
   return true;
 };
 
@@ -67,7 +67,15 @@ const verifyToken = ({ token, tokenType, secret }: IVerifyTokenInput) => {
     return payload;
   } catch (error) {
     console.log(error);
+    return;
   }
 };
 
-export { createToken, verifyToken };
+export {
+  createToken,
+  verifyToken,
+  TTokenType,
+  IVerifyTokenInput,
+  ICreateTokenInput,
+  isJwtPayload,
+};

@@ -1,6 +1,6 @@
 import { Entity, Column, ManyToMany } from 'typeorm';
 import { ObjectType, Field } from 'type-graphql';
-import { BaseId, Food, Pet } from '.';
+import { BaseId, Food, Pet } from '@kibbel/entities';
 
 @ObjectType({ description: 'Dietary Restrictions Schema' })
 @Entity()

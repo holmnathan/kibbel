@@ -1,6 +1,6 @@
 import { NextPage } from "next";
-import { CurrentUserDocument } from "../graphql/generated";
 import { useQuery } from "@apollo/client";
+import { CurrentUserDocument } from "@kibbel/graphql/generated";
 
 const Dashboard: NextPage = () => {
   const { data, error, loading } = useQuery(CurrentUserDocument);

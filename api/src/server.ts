@@ -1,16 +1,20 @@
 // Kibbel API Server ----------------------------------------------------------
+
+// Import NPM Packages
 import 'reflect-metadata';
-import fastify, { FastifyServerOptions } from 'fastify';
-import { ApolloServer, ApolloServerFastifyConfig } from 'apollo-server-fastify';
-import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
 import chalk from 'chalk';
 import { buildSchema } from 'type-graphql';
-import { UserResolver } from './resolvers';
-import { database, appClose } from './plugins';
+import fastify, { FastifyServerOptions } from 'fastify';
 import fastifyCookie, { FastifyCookieOptions } from 'fastify-cookie';
-import { authChecker, verifyToken, createToken } from './auth';
-import { User } from './entities';
 import fastifyCors, { FastifyCorsOptions } from 'fastify-cors';
+import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
+import { ApolloServer, ApolloServerFastifyConfig } from 'apollo-server-fastify';
+
+// Import Local Packages
+import { UserResolver } from '@kibbel/resolvers';
+import { database, appClose } from '@kibbel/plugins';
+import { authChecker, verifyToken, createToken } from '@kibbel/auth';
+import { User } from '@kibbel/entities';
 
 // Environment variables ------------------------------------------------------
 const PORT = process.env.PORT ?? 3000;
@@ -68,7 +72,7 @@ const createServer = async (options: FastifyServerOptions = {}) => {
   // Refresh Token Route
   app.post('/refresh-token', async (request, reply) => {
     // Get existing refresh token from request cookie
-    const refreshToken = request.cookies.kibbel;
+    const refreshToken = request.cookies['kibbel'];
     console.log(refreshToken);
 
     // Verify cookie from request
@@ -82,7 +86,7 @@ const createServer = async (options: FastifyServerOptions = {}) => {
       return { ok: false, token: null };
     }
 
-    const user = await User.findOne({ id: payload.id });
+    const user = await User.findOne({ id: payload['id'] });
     if (!user) {
       app.log.warn('Invalid Refresh Token');
       return { ok: false, token: null };

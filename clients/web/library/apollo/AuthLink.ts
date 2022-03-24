@@ -1,8 +1,6 @@
 import { ApolloLink, Observable } from "@apollo/client";
-import type { FetchResult } from "@apollo/client";
-import { AccessToken } from "../AccessToken";
-
-import type { Operation, NextLink } from "@apollo/client";
+import type { FetchResult, Operation, NextLink } from "@apollo/client";
+import { AccessToken } from "@kibbel/library/AccessToken";
 
 class AuthLink extends ApolloLink {
   accessToken: AccessToken;

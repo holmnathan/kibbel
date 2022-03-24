@@ -1,6 +1,6 @@
 import { Entity, ManyToOne, Column } from 'typeorm';
 import { ObjectType, Field } from 'type-graphql';
-import { BaseUuid, Pet } from '.';
+import { BaseUuid, Pet } from '@kibbel/entities';
 
 const sharedComments = {
   weighDate: 'The date pet was weighed',

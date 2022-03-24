@@ -22,13 +22,13 @@ abstract class RecordDates extends BaseEntity {
 }
 
 abstract class BaseUuid extends RecordDates {
-  @Field((type) => GraphQLUUID)
+  @Field(() => GraphQLUUID)
   @PrimaryGeneratedColumn('uuid')
   id!: String;
 }
 
 abstract class BaseId extends RecordDates {
-  @Field((type) => ID)
+  @Field(() => ID)
   @PrimaryGeneratedColumn()
   id!: Number;
 }

@@ -1,1 +1,6 @@
-{ "extends": "@tsconfig/node16-strictest/tsconfig.json" }
+{
+  "extends": "@tsconfig/node16-strictest/tsconfig.json",
+  "compilerOptions": {
+    "composite": true // Enable referencing from other projects
+  }
+}

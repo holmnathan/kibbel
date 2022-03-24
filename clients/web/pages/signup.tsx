@@ -1,14 +1,26 @@
+// Import NPM Packages
 import { Formik, Field, Form, FormikHelpers } from "formik";
-import { CreateUserInput, useCreateUserMutation } from "../graphql/generated";
-import InputField from "../components/InputField";
 import { Button, Spinner } from "react-bootstrap";
+import { NextPage } from "next";
+import { ApolloError, useMutation } from "@apollo/client";
+
+// Import Local Modules
+import { InputField } from "@kibbel/components/Form";
+import {
+  CreateUserDocument,
+  CreateUserMutationVariables,
+} from "@kibbel/graphql/generated";
 
 const SignUp: NextPage = () => {
-  const [createUser, { data, error, loading }] = useCreateUserMutation({
-    onError: (error) => {
-      console.error(error.graphQLErrors[0].extensions);
-    },
-  });
+  const [createUser, { error }] = useMutation(CreateUserDocument);
+  const initialValues: CreateUserMutationVariables = {
+    email: "",
+    password: "",
+    fullName: "",
+    displayName: "",
+    imageUrl: "",
+  };
+
   return (
     <>
       <h1>Create Your Kibbel Account</h1>

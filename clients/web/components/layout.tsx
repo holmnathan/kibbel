@@ -1,6 +1,6 @@
-import { NavBar } from "./";
 import type { ReactNode } from "react";
 import Head from "next/head";
+import { NavBar } from "@kibbel/components";
 
 type TProps = {
   children?: ReactNode;

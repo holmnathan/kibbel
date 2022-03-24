@@ -7,11 +7,15 @@ import {
   Ctx,
   Authorized,
 } from 'type-graphql';
-import { User, SigninResponse } from '../entities/';
-import { CreateUserInput, UpdateUserInput, LogInUserArgs } from '../inputs';
+import { User, SigninResponse } from '@kibbel/entities';
+import {
+  CreateUserInput,
+  UpdateUserInput,
+  LogInUserArgs,
+} from '@kibbel/inputs';
 import { hash, compare } from 'bcrypt';
-import Context from '../Context';
-import { createToken, verifyToken } from '../auth';
+import type Context from '@kibbel/Context';
+import { createToken, verifyToken } from '@kibbel/auth';
 import { AuthenticationError, UserInputError } from 'apollo-server-fastify';
 
 @Resolver(User)
@@ -30,7 +34,7 @@ class UserResolver {
       tokenType: 'ACCESS',
     });
 
-    const user = await User.findOne({ id: payload!.id });
+    const user = await User.findOne({ id: payload!['id'] });
 
     if (!user) throw new UserInputError('User not found with ID');
 

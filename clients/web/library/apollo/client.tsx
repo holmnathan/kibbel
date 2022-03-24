@@ -1,3 +1,4 @@
+// Import NPM Packages
 import {
   ApolloClient,
   ApolloProvider,
@@ -13,9 +14,11 @@ import type {
   ApolloClientOptions,
 } from "@apollo/client";
 import type { GetServerSidePropsContext } from "next";
-import { AuthLink } from "./AuthLink";
 import { TokenRefreshLink } from "apollo-link-token-refresh";
-import { AccessToken } from "../AccessToken";
+
+// Import Local Modules
+import { AuthLink } from "@kibbel/library/apollo";
+import { AccessToken } from "@kibbel/library/AccessToken";
 
 let client: ApolloClient<NormalizedCacheObject>;
 const accessToken = new AccessToken();

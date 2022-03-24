@@ -7,7 +7,14 @@ import {
   JoinTable,
 } from 'typeorm';
 import { ObjectType, Field, registerEnumType } from 'type-graphql';
-import { BaseUuid, User, Diet, MealPlan, Weight, DietRestriction } from '.';
+import {
+  BaseUuid,
+  User,
+  Diet,
+  MealPlan,
+  Weight,
+  DietRestriction,
+} from '@kibbel/entities';
 
 // Enumerated Types -----------------------------------------------------------
 // Each Type is defined and registered with TypeGraphQL

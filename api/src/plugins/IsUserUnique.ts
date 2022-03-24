@@ -5,22 +5,22 @@ import {
   ValidatorConstraintInterface,
   ValidationArguments,
 } from 'class-validator';
-import { User } from '../entities';
+import { User } from '@kibbel/entities';
 
 @ValidatorConstraint({ async: true })
 class IsUserUniqueConstraint implements ValidatorConstraintInterface {
-  async validate(email: any, args: ValidationArguments) {
+  async validate(email: any, _args: ValidationArguments) {
     const user = await User.findOne({ email });
     if (user) return false;
     return true;
   }
 }
-const IsUserUnique = (validationOptions?: ValidationOptions) => {
+const IsUserUnique = (options?: ValidationOptions) => {
   return function (object: Object, propertyName: string) {
     registerDecorator({
       target: object.constructor,
-      propertyName: propertyName,
-      options: validationOptions,
+      propertyName,
+      options: options ?? {},
       constraints: [],
       validator: IsUserUniqueConstraint,
     });

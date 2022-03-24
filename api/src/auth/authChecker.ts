@@ -1,6 +1,6 @@
-import { AuthChecker } from 'type-graphql';
-import Context from '../Context';
-import { verifyToken } from './token';
+import type { AuthChecker } from 'type-graphql';
+import type Context from '@kibbel/Context';
+import { verifyToken } from '@kibbel/auth';
 
 const authChecker: AuthChecker<Context> = ({ context: { request } }) => {
   // Verify request contains an “Authorization” header

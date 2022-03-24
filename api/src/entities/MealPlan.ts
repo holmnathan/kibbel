@@ -1,6 +1,6 @@
 import { Entity, Column, OneToMany } from 'typeorm';
 import { Field, ObjectType } from 'type-graphql';
-import { BaseUuid, Pet, Meal } from '.';
+import { BaseUuid, Pet, Meal } from '@kibbel/entities';
 
 // Entities and Type Definitions ----------------------------------------------
 // TypeOrm decorators:     @Entity, @[*]Column, [*]To[*]

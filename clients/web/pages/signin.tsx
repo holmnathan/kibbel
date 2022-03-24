@@ -1,21 +1,25 @@
-import {
-  SignInUserDocument,
-  SignInUserMutationVariables,
-} from "../graphql/generated";
+// Import NPM Packages
 import { ApolloError, useMutation } from "@apollo/client";
 import { Formik, Form } from "formik";
 import * as yup from "yup";
-import { InputField } from "../components/Form";
 import { Button, Spinner } from "react-bootstrap";
 import { NextPage } from "next";
-import { accessToken } from "../library/apollo/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
+// Import Local Modules
+import { InputField } from "@kibbel/components/Form";
+import { accessToken } from "@kibbel/library/apollo";
+import {
+  SignInUserDocument,
+  SignInUserMutationVariables,
+} from "@kibbel/graphql/generated";
+
 const SignIn: NextPage = () => {
   const router = useRouter();
-  const [submitionErrorMessage, setSubmitionErrorMessage] =
-    useState<string | null>(null);
+  const [submitionErrorMessage, setSubmitionErrorMessage] = useState<
+    string | null
+  >(null);
   const [signInUser, { error }] = useMutation(SignInUserDocument);
   const initialValues: SignInUserMutationVariables = {
     email: "",

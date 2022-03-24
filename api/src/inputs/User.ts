@@ -6,8 +6,8 @@ import {
   IsNotEmpty,
   ValidationArguments,
 } from 'class-validator';
-import { IsUserUnique } from '../plugins/IsUserUnique';
-import { User } from '../entities/';
+import { IsUserUnique } from '@kibbel/plugins';
+import type { User } from '@kibbel/entities';
 
 @InputType({ description: 'Register a new user' })
 class CreateUserInput implements Partial<User> {

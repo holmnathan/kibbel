@@ -1,10 +1,12 @@
 {
   "extends": "@tsconfig/next/tsconfig.json",
   "compilerOptions": {
+    "outDir": "dist",
     "baseUrl": ".", // Required if “paths” is specified
     "paths": {
       // Relative to "baseUrl"
-      "shared": ["../../shared"]
+      "@kibbel/shared": ["../../shared"],
+      "@kibbel/*": ["*"]
     }
   },
   "references": [{ "path": "../../shared" }],

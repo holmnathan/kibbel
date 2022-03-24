@@ -1,6 +1,6 @@
 import { Entity, Column } from 'typeorm';
 import { ObjectType, Field } from 'type-graphql';
-import { BaseId } from '.';
+import { BaseId } from '@kibbel/entities';
 
 // Entities and Type Definitions ----------------------------------------------
 // TypeOrm decorators:     @Entity, @[*]Column

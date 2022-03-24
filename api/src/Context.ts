@@ -1,5 +1,5 @@
-import { FastifyReply, FastifyRequest } from 'fastify';
-import { User } from './entities/';
+import type { FastifyReply, FastifyRequest } from 'fastify';
+import type { User } from '@kibbel/entities';
 
 interface Context {
   request: FastifyRequest;

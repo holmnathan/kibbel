@@ -1,5 +1,5 @@
-import { FastifyInstance } from 'fastify';
-import { ApolloServerPlugin } from 'apollo-server-plugin-base';
+import type { FastifyInstance } from 'fastify';
+import type { ApolloServerPlugin } from 'apollo-server-plugin-base';
 
 const appClose = (app: FastifyInstance): ApolloServerPlugin => {
   return {

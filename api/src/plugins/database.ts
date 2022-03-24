@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import fastifyPlugin from 'fastify-plugin';
 import { createConnection, getConnectionOptions } from 'typeorm';
-import * as entities from '../entities/';
+import * as entities from '@kibbel/entities';
 
 const {
   User,
