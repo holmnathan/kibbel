@@ -1,40 +1,38 @@
 import jwtDecode, { JwtPayload } from "jwt-decode";
-import { OidcStandardClaims } from "@kibbel/shared";
 
 class User {
   private _token: string;
+  private _idToken: string;
+  private _isSignedIn: boolean;
 
-  constructor() {
-    this._token = "";
-  }
   public get token() {
     return this._token;
   }
 
   public set token(newToken: string) {
-    console.log("SETSETSETSETSETSETSETSETSET");
-    console.log(newToken);
+    console.log("Set Access Token");
     this._token = newToken;
   }
 
-  public get header(): JwtPayload | undefined {
-    if (this._token)
-      return jwtDecode<JwtPayload>(this._token, {
-        header: true,
-      });
+  public get idToken() {
+    return this._idToken;
   }
 
-  public get payload(): JwtPayload | undefined {
-    if (this._token) return jwtDecode<JwtPayload>(this._token);
+  public set idToken(newToken: string) {
+    this._idToken = newToken;
   }
+
+  public test = () => {
+    this.idToken = "asdfasdf";
+  };
 
   public isTokenValidOrUndefined = (): boolean => {
-    console.log("ISVALIDISVALIDISVALIDISVALID");
-    console.log(!!this._token);
+    console.log("Validating Access Token");
     // if (!this._token) return true;
 
     try {
-      const { exp } = jwtDecode<JwtPayload>(this._token);
+      const { exp, ...args } = jwtDecode<JwtPayload>(this._token);
+      console.log(args);
       if (!exp) return false;
 
       console.log(`Expired ${Date.now() >= exp * 1000}`);
@@ -45,15 +43,15 @@ class User {
   };
 
   public refresh = async () => {
-    console.log("REFRESHREFRESHREFRESHREFRESHREFRESHREFRESH");
     // Import refresh token URI from environment variable
     const { NEXT_PUBLIC_REFRESH_TOKEN_URI } = process.env;
-    console.log(NEXT_PUBLIC_REFRESH_TOKEN_URI);
 
     if (!NEXT_PUBLIC_REFRESH_TOKEN_URI)
       throw new Error(
         "“NEXT_PUBLIC_REFRESH_TOKEN_URI” environment variable not provided"
       );
+
+    console.log(`Requesting Refresh Token: ${NEXT_PUBLIC_REFRESH_TOKEN_URI}`);
 
     return await fetch(NEXT_PUBLIC_REFRESH_TOKEN_URI, {
       method: "POST",

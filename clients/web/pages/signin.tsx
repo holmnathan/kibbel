@@ -9,7 +9,7 @@ import { useState } from "react";
 
 // Import Local Modules
 import { InputField } from "@kibbel/components/Form";
-import { accessToken } from "@kibbel/library/apollo";
+import { user } from "@kibbel/library/apollo";
 import {
   SignInUserDocument,
   SignInUserMutationVariables,
@@ -49,7 +49,7 @@ const SignIn: NextPage = () => {
                 throw error;
               },
               onCompleted: ({ signInUser: { token } }) => {
-                accessToken.token = token;
+                user.token = token;
                 router.push("/dashboard");
               },
             });

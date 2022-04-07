@@ -1,27 +1,18 @@
 // Import NPM Packages
-import {
-  ApolloClient,
-  ApolloProvider,
-  HttpLink,
-  InMemoryCache,
-  from,
-} from "@apollo/client";
-import { useMemo } from "react";
-import type { NextPage, NextApiRequest, NextApiResponse } from "next";
 import type {
-  NormalizedCacheObject,
-  HttpOptions,
   ApolloClientOptions,
+  HttpOptions,
+  NormalizedCacheObject
 } from "@apollo/client";
-import type { GetServerSidePropsContext } from "next";
-import { TokenRefreshLink } from "apollo-link-token-refresh";
-
+import { ApolloClient, from, HttpLink, InMemoryCache } from "@apollo/client";
 // Import Local Modules
 import { AuthLink } from "@kibbel/library/apollo/AuthLink";
-import { AccessToken } from "@kibbel/library/AccessToken";
+import { User } from "@kibbel/library/User";
+import { TokenRefreshLink } from "apollo-link-token-refresh";
+import type { GetServerSidePropsContext } from "next";
 
 let client: ApolloClient<NormalizedCacheObject>;
-const accessToken = new AccessToken();
+const user = new User();
 
 // Check if context is server side or client side
 const isServerSide = (): boolean => {
@@ -36,16 +27,16 @@ const createApolloClient = (context?: GetServerSidePropsContext) => {
 
   const refreshLinkOptions: TokenRefreshLink.Options<string> = {
     accessTokenField: "token",
-    isTokenValidOrUndefined: accessToken.isTokenValidOrUndefined,
-    fetchAccessToken: accessToken.refresh,
-    handleFetch: (newToken) => (accessToken.token = newToken),
+    isTokenValidOrUndefined: user.isTokenValidOrUndefined,
+    fetchAccessToken: user.refresh,
+    handleFetch: (newToken) => (user.token = newToken),
     handleError: (error) => {
       console.log(error);
     },
   };
 
   const refreshLink = new TokenRefreshLink(refreshLinkOptions);
-  const authLink = new AuthLink(accessToken);
+  const authLink = new AuthLink(user);
   const httpLink = new HttpLink(httpOptions);
 
   const apolloOptions: ApolloClientOptions<NormalizedCacheObject> = {
@@ -67,4 +58,4 @@ const initializeApollo = (initialState = undefined, context = undefined) => {
 
 client = createApolloClient();
 
-export { client, accessToken };
+export { client, user };
