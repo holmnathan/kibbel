@@ -1,4 +1,1 @@
-export interface ITest {
-  name: string;
-  age: number;
-}
+export * from "./oidc";
