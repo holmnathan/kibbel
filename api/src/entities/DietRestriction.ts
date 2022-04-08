@@ -1,10 +1,10 @@
-import { Entity, Column, ManyToMany } from 'typeorm';
-import { ObjectType, Field } from 'type-graphql';
-import { BaseId, Food, Pet } from '@kibbel/entities';
+import { BaseEntityId, Food, Pet } from '@kibbel/entities';
+import { Field, ObjectType } from 'type-graphql';
+import { Column, Entity, ManyToMany } from 'typeorm';
 
 @ObjectType({ description: 'Dietary Restrictions Schema' })
 @Entity()
-class DietRestriction extends BaseId {
+class DietRestriction extends BaseEntityId {
   @Field()
   @Column()
   name!: String;

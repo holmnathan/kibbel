@@ -13,7 +13,7 @@ import type { User } from '@kibbel/entities';
 class CreateUserInput implements Partial<User> {
   @Field()
   @IsNotEmpty({ message: 'Enter a full name' })
-  fullName!: string;
+  name!: string;
 
   @Field({ nullable: true })
   @MaxLength(32, {
@@ -21,7 +21,7 @@ class CreateUserInput implements Partial<User> {
       return `Display name must be ${constraints[0]} characters or less`;
     },
   })
-  displayName?: string;
+  nickname?: string;
 
   @Field()
   @IsEmail([], { message: 'Enter a valid email address' })
@@ -35,7 +35,7 @@ class CreateUserInput implements Partial<User> {
 
   @Field({ nullable: true })
   @IsFQDN()
-  imageUrl?: string;
+  picture?: string;
 }
 
 @InputType({ description: 'Update an existing user profile' })

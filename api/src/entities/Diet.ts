@@ -1,6 +1,6 @@
-import { Entity, Column } from 'typeorm';
-import { ObjectType, Field } from 'type-graphql';
-import { BaseId } from '@kibbel/entities';
+import { BaseEntityId } from '@kibbel/entities';
+import { Field, ObjectType } from 'type-graphql';
+import { Column, Entity } from 'typeorm';
 
 // Entities and Type Definitions ----------------------------------------------
 // TypeOrm decorators:     @Entity, @[*]Column
@@ -14,7 +14,7 @@ const sharedComments = {
 
 @Entity()
 @ObjectType({ description: 'Diet Type Schema' })
-class Diet extends BaseId {
+class Diet extends BaseEntityId {
   @Field()
   @Column()
   name!: string;
@@ -26,7 +26,10 @@ class Diet extends BaseId {
   @Field({
     description: sharedComments.energyMultiplier,
   })
-  @Column({ comment: sharedComments.energyMultiplier })
+  @Column({
+    name: 'energy_multiplier',
+    comment: sharedComments.energyMultiplier,
+  })
   energyMultiplier!: number;
 }
 

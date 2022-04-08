@@ -1,6 +1,6 @@
-import { Entity, Column, ManyToMany, JoinTable } from 'typeorm';
+import { BaseEntityUuid, DietRestriction, User } from '@kibbel/entities';
 import { Field, ObjectType } from 'type-graphql';
-import { BaseUuid, User, DietRestriction } from '@kibbel/entities';
+import { Column, Entity, JoinTable, ManyToMany } from 'typeorm';
 
 // Entities and Type Definitions ----------------------------------------------
 // TypeOrm decorators:     @Entity, @[*]Column, [*]To[*]
@@ -12,12 +12,12 @@ const sharedComments = {
   manufacturer: 'The pet food manufacturer',
   flavor: 'The pet food flavor or recipe (ex. “Turkey and Duck”)',
   url: 'The pet food product or manufacturer URL',
-  kilogramCalories: 'The calories per kilogram of pet food',
+  caloriesPerKg: 'The calories per kilogram of pet food',
 };
 
 @ObjectType({ description: 'Food Schema' })
 @Entity()
-class Food extends BaseUuid {
+class Food extends BaseEntityUuid {
   @Field({ description: sharedComments.brandName })
   @Column({ comment: sharedComments.brandName })
   name!: String;
@@ -34,9 +34,9 @@ class Food extends BaseUuid {
   @Column({ nullable: true, comment: sharedComments.url })
   url?: String;
 
-  @Field({ description: sharedComments.kilogramCalories })
-  @Column({ comment: sharedComments.kilogramCalories })
-  kilogramCalories!: Number;
+  @Field({ description: sharedComments.caloriesPerKg })
+  @Column({ name: 'calories_per_kg', comment: sharedComments.caloriesPerKg })
+  caloriesPerKg!: Number;
 
   // Relational Fields
 
@@ -50,7 +50,13 @@ class Food extends BaseUuid {
   // A dietary restriction can be assigned to many foods
   @Field(() => [DietRestriction])
   @ManyToMany(() => DietRestriction)
-  @JoinTable()
+  @JoinTable({
+    name: 'food_diet_restrictions',
+    joinColumn: {
+      name: 'food_id',
+    },
+    inverseJoinColumn: { name: 'diet_restriction_id' },
+  })
   dietRestrictions!: DietRestriction[];
 }
 

@@ -1,5 +1,5 @@
-import { sign, verify, JwtPayload } from 'jsonwebtoken';
 import type { User } from '@kibbel/entities';
+import { JwtPayload, sign, verify } from 'jsonwebtoken';
 
 // Type Definitions -----------------------------------------------------------
 

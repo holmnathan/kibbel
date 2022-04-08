@@ -1,22 +1,14 @@
-import {
-  Resolver,
-  Query,
-  Mutation,
-  Args,
-  Arg,
-  Ctx,
-  Authorized,
-} from 'type-graphql';
-import { User, SigninResponse } from '@kibbel/entities';
-import {
-  CreateUserInput,
-  UpdateUserInput,
-  LogInUserArgs,
-} from '@kibbel/inputs';
-import { hash, compare } from 'bcrypt';
-import type Context from '@kibbel/Context';
 import { createToken, verifyToken } from '@kibbel/auth';
+import type Context from '@kibbel/Context';
+import { SigninResponse, User } from '@kibbel/entities';
+import {
+  CreateUserInput, LogInUserArgs, UpdateUserInput
+} from '@kibbel/inputs';
 import { AuthenticationError, UserInputError } from 'apollo-server-fastify';
+import { compare, hash } from 'bcrypt';
+import {
+  Arg, Args, Authorized, Ctx, Mutation, Query, Resolver
+} from 'type-graphql';
 
 @Resolver(User)
 class UserResolver {

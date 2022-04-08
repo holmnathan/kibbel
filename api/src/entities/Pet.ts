@@ -1,20 +1,21 @@
 import {
-  Entity,
-  Column,
-  ManyToOne,
-  OneToMany,
-  ManyToMany,
-  JoinTable,
-} from 'typeorm';
-import { ObjectType, Field, registerEnumType } from 'type-graphql';
-import {
-  BaseUuid,
-  User,
+  BaseEntityUuid,
   Diet,
-  MealPlan,
-  Weight,
   DietRestriction,
+  MealPlan,
+  User,
+  Weight
 } from '@kibbel/entities';
+import { Field, ObjectType, registerEnumType } from 'type-graphql';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToMany
+} from 'typeorm';
 
 // Enumerated Types -----------------------------------------------------------
 // Each Type is defined and registered with TypeGraphQL
@@ -51,7 +52,7 @@ registerEnumType(PetGender, {
 const sharedComments = {
   name: 'The pet’s name',
   birthDate: 'The pet’s date of birth',
-  imageUrl: 'URL of pet’s uploaded profile image',
+  picture: 'URL of pet’s uploaded profile image',
   isIntact: 'The pet’s reproductive status',
   species: 'The pet’s species',
   gender: 'The pet’s gender',
@@ -59,7 +60,7 @@ const sharedComments = {
 
 @Entity()
 @ObjectType({ description: 'Pet Schema' })
-class Pet extends BaseUuid {
+class Pet extends BaseEntityUuid {
   @Field({
     description: sharedComments.name,
   })
@@ -69,20 +70,20 @@ class Pet extends BaseUuid {
   @Field({
     description: sharedComments.birthDate,
   })
-  @Column({ comment: sharedComments.birthDate })
+  @Column({ name: 'birth_date', comment: sharedComments.birthDate })
   birthDate!: Date;
 
   @Field({
     nullable: true,
-    description: sharedComments.imageUrl,
+    description: sharedComments.picture,
   })
-  @Column({ comment: sharedComments.imageUrl, nullable: true })
-  imageUrl?: string;
+  @Column({ comment: sharedComments.picture, nullable: true })
+  picture?: string;
 
   @Field({
     description: sharedComments.isIntact,
   })
-  @Column({ comment: sharedComments.isIntact })
+  @Column({ name: 'is_intact', comment: sharedComments.isIntact })
   isIntact!: boolean;
 
   @Field(() => PetSpecies, {
@@ -108,30 +109,40 @@ class Pet extends BaseUuid {
   // A pet belongs to one user
   // A user can have many pets
   @ManyToOne(() => User, (user) => user.pets)
+  @JoinColumn({ name: 'user_id' })
   user!: User;
 
   // A pet is assigned one meal plan
   // A Meal plan can be assigned to many Pets
   @Field(() => MealPlan)
   @ManyToOne(() => MealPlan, (mealPlan) => mealPlan.pets)
+  @JoinColumn({ name: 'meal_plan_id' })
   mealPlan!: MealPlan;
 
   // A pet is assigned one diet
   // A Diet can be assigned to many pets
   @ManyToOne(() => Diet)
+  @JoinColumn({ name: 'diet_id' })
   diet!: Diet;
 
   // A pet can have many weights
   // A weight belongs to one pet
   @Field(() => [Weight])
   @OneToMany(() => Weight, (weight) => weight.pet)
+  @JoinColumn({ name: 'weight_id' })
   weightHistory!: Weight[];
 
   // A pet can have many dietary restrictions
   // A dietary restriction can be assigned to many pets
   @Field(() => [DietRestriction])
   @ManyToMany(() => DietRestriction)
-  @JoinTable()
+  @JoinTable({
+    name: 'pet_diet_restrictions',
+    joinColumn: {
+      name: 'pet_id',
+    },
+    inverseJoinColumn: { name: 'diet_restriction_id' },
+  })
   dietRestrictions!: DietRestriction[];
 }
 

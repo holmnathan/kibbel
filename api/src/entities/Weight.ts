@@ -1,18 +1,18 @@
-import { Entity, ManyToOne, Column } from 'typeorm';
-import { ObjectType, Field } from 'type-graphql';
-import { BaseUuid, Pet } from '@kibbel/entities';
+import { BaseEntityUuid, Pet } from '@kibbel/entities';
+import { Field, ObjectType } from 'type-graphql';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 
 const sharedComments = {
-  weighDate: 'The date pet was weighed',
+  weighedAt: 'The date pet was weighed',
   weight: 'Weight of pet in grams',
 };
 
 @ObjectType({ description: 'Weight Schema' })
 @Entity()
-class Weight extends BaseUuid {
-  @Field({ description: sharedComments.weighDate })
-  @Column({ comment: sharedComments.weighDate })
-  weighDate!: Date;
+class Weight extends BaseEntityUuid {
+  @Field({ description: sharedComments.weighedAt })
+  @Column({ name: 'weighed_at', comment: sharedComments.weighedAt })
+  weighedAt!: Date;
 
   @Field({ description: sharedComments.weight })
   @Column({ comment: sharedComments.weight })
@@ -23,6 +23,7 @@ class Weight extends BaseUuid {
   // Weight belongs to one pet
   @Field(() => Pet)
   @ManyToOne(() => Pet, (pet) => pet.weightHistory)
+  @JoinColumn({ name: 'pet_id' })
   pet!: Pet;
 }
 

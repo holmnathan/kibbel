@@ -1,36 +1,39 @@
-import {
-  CreateDateColumn,
-  UpdateDateColumn,
-  BaseEntity,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
-import { Field, ID } from 'type-graphql';
 import { GraphQLUUID } from 'graphql-custom-types';
+import { Field, ID, ObjectType } from 'type-graphql';
+import {
+  BaseEntity,
+  CreateDateColumn,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn
+} from 'typeorm';
 
 // Entities and Type Definitions ----------------------------------------------
 // TypeOrm decorators:     @[*]Column
 // TypeGraphQL decorators: @Field
 
-abstract class RecordDates extends BaseEntity {
+@ObjectType()
+abstract class BaseEntityDates extends BaseEntity {
   @Field()
-  @CreateDateColumn()
-  createdAt!: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  readonly createdAt!: Date;
 
   @Field()
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt!: Date;
 }
 
-abstract class BaseUuid extends RecordDates {
+@ObjectType()
+abstract class BaseEntityUuid extends BaseEntityDates {
   @Field(() => GraphQLUUID)
   @PrimaryGeneratedColumn('uuid')
-  id!: String;
+  readonly id!: String;
 }
 
-abstract class BaseId extends RecordDates {
+@ObjectType()
+abstract class BaseEntityId extends BaseEntityDates {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
-  id!: Number;
+  readonly id!: Number;
 }
 
-export { BaseUuid, BaseId };
+export { BaseEntityUuid, BaseEntityId, BaseEntityDates };

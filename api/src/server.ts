@@ -1,20 +1,19 @@
 // Kibbel API Server ----------------------------------------------------------
 
 // Import NPM Packages
-import 'reflect-metadata';
+import { authChecker, createToken, verifyToken } from '@kibbel/auth';
+import { User } from '@kibbel/entities';
+import { appClose, database } from '@kibbel/plugins';
+// Import Local Packages
+import { UserResolver } from '@kibbel/resolvers';
+import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
+import { ApolloServer, ApolloServerFastifyConfig } from 'apollo-server-fastify';
 import chalk from 'chalk';
-import { buildSchema } from 'type-graphql';
 import fastify, { FastifyServerOptions } from 'fastify';
 import fastifyCookie, { FastifyCookieOptions } from 'fastify-cookie';
 import fastifyCors, { FastifyCorsOptions } from 'fastify-cors';
-import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
-import { ApolloServer, ApolloServerFastifyConfig } from 'apollo-server-fastify';
-
-// Import Local Packages
-import { UserResolver } from '@kibbel/resolvers';
-import { database, appClose } from '@kibbel/plugins';
-import { authChecker, verifyToken, createToken } from '@kibbel/auth';
-import { User } from '@kibbel/entities';
+import 'reflect-metadata';
+import { buildSchema } from 'type-graphql';
 
 // Environment variables ------------------------------------------------------
 const PORT = process.env.PORT ?? 3000;
@@ -30,6 +29,7 @@ const createServer = async (options: FastifyServerOptions = {}) => {
     schema: await buildSchema({
       resolvers: [UserResolver],
       authChecker,
+      dateScalarMode: 'timestamp',
     }),
     plugins: [
       appClose(app),

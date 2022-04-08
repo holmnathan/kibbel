@@ -1,6 +1,6 @@
-import { Entity, Column, OneToMany } from 'typeorm';
+import { BaseEntityUuid, Meal, Pet } from '@kibbel/entities';
 import { Field, ObjectType } from 'type-graphql';
-import { BaseUuid, Pet, Meal } from '@kibbel/entities';
+import { Column, Entity, OneToMany } from 'typeorm';
 
 // Entities and Type Definitions ----------------------------------------------
 // TypeOrm decorators:     @Entity, @[*]Column, [*]To[*]
@@ -8,7 +8,7 @@ import { BaseUuid, Pet, Meal } from '@kibbel/entities';
 
 @ObjectType({ description: 'Meal Plan Schema' })
 @Entity()
-class MealPlan extends BaseUuid {
+class MealPlan extends BaseEntityUuid {
   @Field()
   @Column()
   name!: String;

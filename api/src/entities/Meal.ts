@@ -1,6 +1,6 @@
-import { Entity, Column, OneToMany, ManyToOne } from 'typeorm';
+import { BaseEntityUuid, MealPlan, Serving } from '@kibbel/entities';
 import { Field, ObjectType } from 'type-graphql';
-import { BaseUuid, Serving, MealPlan } from '@kibbel/entities';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 
 // Entities and Type Definitions ----------------------------------------------
 // TypeOrm decorators:     @Entity, @[*]Column, [*]To[*]
@@ -13,14 +13,14 @@ const sharedComments = {
 
 @ObjectType({ description: 'Meal Schema' })
 @Entity()
-class Meal extends BaseUuid {
-  @Field({ description: sharedComments.sortOrder })
-  @Column({ comment: sharedComments.sortOrder })
-  sortOrder!: Number;
-
+class Meal extends BaseEntityUuid {
   @Field({ nullable: true })
   @Column({ nullable: true })
   name?: String;
+
+  @Field({ description: sharedComments.sortOrder })
+  @Column({ name: 'sort_order', comment: sharedComments.sortOrder })
+  sortOrder!: Number;
 
   // Relational Fields
 
@@ -43,6 +43,7 @@ class Meal extends BaseUuid {
       mealPlan.meals;
     }
   )
+  @JoinColumn({ name: 'meal_plan_id' })
   mealPlan!: MealPlan;
 }
 
