@@ -21,6 +21,14 @@ const isJwtPayload = (_object: any): _object is JwtPayload => {
   return true;
 };
 
+//
+const getBearerToken = (authHeader?: string): string | undefined => {
+  if (!authHeader) return undefined;
+  const token = authHeader.split('Bearer ')[1];
+  if (!token) return undefined;
+  return token;
+};
+
 // Get token secret environment variable
 const getTokenSecret = ({ secret, tokenType }: TTokenType): string => {
   // provide secret argument | ACCESS_TOKEN_SECRET || REFRESH_TOKEN_SECRET
@@ -61,6 +69,7 @@ const verifyToken = ({ token, tokenType, secret }: IVerifyTokenInput) => {
     // Get correct environment secret from tokenType
     const TOKEN_SECRET = getTokenSecret({ tokenType, secret });
     // Verify JWT
+
     const payload = verify(token, TOKEN_SECRET);
     // Verify payload
     if (!isJwtPayload(payload)) throw new Error('Invalid JWT payload');
@@ -78,4 +87,5 @@ export {
   IVerifyTokenInput,
   ICreateTokenInput,
   isJwtPayload,
+  getBearerToken,
 };
