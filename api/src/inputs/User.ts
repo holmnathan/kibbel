@@ -1,13 +1,13 @@
-import { InputType, ArgsType, Field } from 'type-graphql';
+import type { User } from '@kibbel/entities';
+import { IsUserUnique } from '@kibbel/plugins';
 import {
-  MaxLength,
   IsEmail,
   IsFQDN,
   IsNotEmpty,
-  ValidationArguments,
+  MaxLength,
+  ValidationArguments
 } from 'class-validator';
-import { IsUserUnique } from '@kibbel/plugins';
-import type { User } from '@kibbel/entities';
+import { ArgsType, Field, InputType } from 'type-graphql';
 
 @InputType({ description: 'Register a new user' })
 class CreateUserInput implements Partial<User> {
@@ -41,11 +41,11 @@ class CreateUserInput implements Partial<User> {
 @InputType({ description: 'Update an existing user profile' })
 class UpdateUserInput implements Partial<User> {
   @Field({ nullable: true })
-  fullName?: string;
+  name?: string;
 
   @Field({ nullable: true })
   @MaxLength(30)
-  displayName?: string;
+  nickname?: string;
 
   @Field({ nullable: true })
   @IsEmail()
@@ -56,11 +56,11 @@ class UpdateUserInput implements Partial<User> {
 
   @Field({ nullable: true })
   @IsFQDN()
-  imageUrl?: string;
+  picture?: string;
 }
 
 @ArgsType()
-class LogInUserArgs {
+class AuthenticationArguments {
   @Field()
   @IsEmail()
   email!: string;
@@ -69,4 +69,4 @@ class LogInUserArgs {
   password!: string;
 }
 
-export { CreateUserInput, UpdateUserInput, LogInUserArgs };
+export { CreateUserInput, UpdateUserInput, AuthenticationArguments };

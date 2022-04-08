@@ -1,5 +1,5 @@
 import { BaseEntityUuid, Food, Pet } from '@kibbel/entities';
-import type { ObjectDescription, OidcStandardClaims } from '@kibbel/shared';
+import type { ObjectDescription, OidcClaims } from '@kibbel/shared';
 import { Field, ObjectType } from 'type-graphql';
 import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
 
@@ -12,7 +12,7 @@ import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
 
 // Shared TypeGraphQL descriptions and TypeORM comments
 const description: ObjectDescription<
-  OidcStandardClaims,
+  OidcClaims.Standard,
   | 'name'
   | 'nickname'
   | 'picture'
@@ -38,7 +38,7 @@ const description: ObjectDescription<
 
 @Entity()
 @ObjectType({ description: 'User Schema' })
-class User extends BaseEntityUuid implements OidcStandardClaims {
+class User extends BaseEntityUuid implements OidcClaims.Standard {
   @Field({
     description: description.name,
   })
@@ -98,20 +98,24 @@ class User extends BaseEntityUuid implements OidcStandardClaims {
   })
   @ManyToMany(() => Food)
   @JoinTable({
-    name: 'favorite_foods',
     joinColumn: { name: 'user_id' },
     inverseJoinColumn: { name: 'food_id' },
   })
-  favoriteFoods!: Food[];
+  favorite_foods!: Food[];
 }
 
-@ObjectType({ description: 'Login Response' })
-class SigninResponse {
-  @Field(() => User, { description: 'The logged in user' })
-  user!: User;
-  @Field({ description: 'Base64 encoded JSON Web Token (JWT)' })
+@ObjectType({ description: 'Authenticated User Response' })
+class AuthenticationResponse {
+  @Field(() => User, { description: 'The User', nullable: true })
+  user?: User;
+  @Field({ description: 'Base64 encoded JSON Web Token (JWT) Access Token' })
   token!: string;
+  @Field({
+    description: 'Base64 encoded JSON Web Token (JWT) Refresh Token',
+    nullable: true,
+  })
+  refresh_token?: string;
 }
 
 export default User;
-export { User, SigninResponse };
+export { User, AuthenticationResponse };

@@ -1,13 +1,21 @@
-import { createToken, verifyToken } from '@kibbel/auth';
+import { createToken, getBearerToken, verifyToken } from '@kibbel/auth';
 import type Context from '@kibbel/Context';
-import { SigninResponse, User } from '@kibbel/entities';
+import { AuthenticationResponse, User } from '@kibbel/entities';
 import {
-  CreateUserInput, LogInUserArgs, UpdateUserInput
+  AuthenticationArguments,
+  CreateUserInput,
+  UpdateUserInput
 } from '@kibbel/inputs';
 import { AuthenticationError, UserInputError } from 'apollo-server-fastify';
 import { compare, hash } from 'bcrypt';
 import {
-  Arg, Args, Authorized, Ctx, Mutation, Query, Resolver
+  Arg,
+  Args,
+  Authorized,
+  Ctx,
+  Mutation,
+  Query,
+  Resolver
 } from 'type-graphql';
 
 @Resolver(User)
@@ -17,12 +25,18 @@ class UserResolver {
   @Query(() => User)
   async currentUser(
     @Ctx()
-    { request: { headers } }: Context
+    {
+      request: {
+        headers: { authorization },
+      },
+    }: Context
   ) {
-    if (!headers.authorization)
+    const token = getBearerToken(authorization);
+    if (!token)
       throw new AuthenticationError('Request did not contain an access token');
+
     const payload = verifyToken({
-      token: headers.authorization,
+      token,
       tokenType: 'ACCESS',
     });
 
@@ -39,12 +53,12 @@ class UserResolver {
     return User.find();
   }
 
-  // Log In a User ------------------------------------------------------------
-  @Mutation(() => SigninResponse)
-  async signInUser(
-    @Args() { email, password }: LogInUserArgs,
+  // Authorize a User ------------------------------------------------------------
+  @Mutation(() => AuthenticationResponse)
+  async Authorize(
+    @Args() { email, password }: AuthenticationArguments,
     @Ctx() { reply }: Context
-  ): Promise<SigninResponse> {
+  ): Promise<AuthenticationResponse> {
     // Check to see if user already exists
     const user = await User.findOne({ email });
     if (!user) {
@@ -64,7 +78,7 @@ class UserResolver {
       maxAge,
     });
 
-    // Return a JWT access token with SigninResponse as payload
+    // Return a JWT access token with Authentication Response as payload
     const token = createToken({ user, tokenType: 'ACCESS' });
     return { token, user };
   }
