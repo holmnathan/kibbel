@@ -51,7 +51,7 @@ registerEnumType(PetGender, {
 // Shared TypeGraphQL descriptions and TypeORM comments
 const sharedComments = {
   name: 'The pet’s name',
-  birthDate: 'The pet’s date of birth',
+  birthdate: 'The pet’s date of birth',
   picture: 'URL of pet’s uploaded profile image',
   isIntact: 'The pet’s reproductive status',
   species: 'The pet’s species',
@@ -68,10 +68,10 @@ class Pet extends BaseEntityUuid {
   name!: string;
 
   @Field({
-    description: sharedComments.birthDate,
+    description: sharedComments.birthdate,
   })
-  @Column({ name: 'birth_date', comment: sharedComments.birthDate })
-  birthDate!: Date;
+  @Column({ name: 'birth_date', comment: sharedComments.birthdate })
+  birthdate!: Date;
 
   @Field({
     nullable: true,
