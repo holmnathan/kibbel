@@ -7,7 +7,7 @@ import { Column, Entity, OneToMany } from 'typeorm';
 // TypeGraphQL decorators: @ObjectType, @Field
 
 @ObjectType({ description: 'Meal Plan Schema' })
-@Entity()
+@Entity({ name: 'meal_plan' })
 class MealPlan extends BaseEntityUuid {
   @Field()
   @Column()

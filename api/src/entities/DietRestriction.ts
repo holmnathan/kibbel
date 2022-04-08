@@ -3,7 +3,7 @@ import { Field, ObjectType } from 'type-graphql';
 import { Column, Entity, ManyToMany } from 'typeorm';
 
 @ObjectType({ description: 'Dietary Restrictions Schema' })
-@Entity()
+@Entity({ name: 'diet_restriction' })
 class DietRestriction extends BaseEntityId {
   @Field()
   @Column()
