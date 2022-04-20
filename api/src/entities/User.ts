@@ -1,16 +1,23 @@
 import { BaseEntityUuid, Food, Pet } from '@kibbel/entities';
+import type { AuthenticationArguments } from '@kibbel/inputs';
 import type { ObjectDescription, OidcClaims } from '@kibbel/shared';
+import { compare } from 'bcrypt';
 import { Field, ObjectType } from 'type-graphql';
-import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  OneToMany
+} from 'typeorm';
 
-// Entities and Type Definitions ----------------------------------------------
-// TypeOrm decorators:     @Entity, @[*]Column, @[*]To[*]
-// TypeGraphQL decorators: @ObjectType, @Field
-
-// Field names and descriptions conform to Standard OpenID Connect claims
-// https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
-
-// Shared TypeGraphQL descriptions and TypeORM comments
+/**
+ * Shared TypeGraphQL descriptions and TypeORM comments
+ *
+ * @remarks
+ * Combines TypeGraphQL @field descriptions and TypeORM @column comments which share the same text
+ * Field names and descriptions conform to {@link https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims | Standard OpenID Connect claims}
+ */
 const description: ObjectDescription<
   OidcClaims.Standard,
   | 'name'
@@ -36,6 +43,9 @@ const description: ObjectDescription<
     'End-User’s locale, represented as a BCP47 [RFC5646] language tag. This is typically an ISO 639-1 Alpha-2 [ISO639‑1] language code in lowercase and an ISO 3166-1 Alpha-2 [ISO3166‑1] country code in uppercase, separated by a dash. For example, en-US or fr-CA.',
 };
 
+// Entities and Type Definitions ----------------------------------------------
+// TypeOrm decorators:     @Entity, @[*]Column, @[*]To[*]
+// TypeGraphQL decorators: @ObjectType, @Field
 @Entity()
 @ObjectType({ description: 'User Schema' })
 class User extends BaseEntityUuid implements OidcClaims.Standard {
@@ -62,6 +72,7 @@ class User extends BaseEntityUuid implements OidcClaims.Standard {
     description: description.email,
   })
   @Column({ unique: true, comment: description.email })
+  @Column({ comment: description.email })
   email!: string;
 
   @Field({
@@ -80,10 +91,44 @@ class User extends BaseEntityUuid implements OidcClaims.Standard {
   @Column({ nullable: true, comment: description.locale })
   locale?: string;
 
-  @Column()
+  /**
+   * Password
+   *
+   * @remarks
+   * User password field is hidden from GraphQL queries and is not retrieved from the database unless specified with addSelect() in QueryBuilder.
+   * Password is hashed before insert and update @see {@link UserSubscriber}
+   */
+  @Column({ select: false })
   password!: string;
 
-  // Relational fields
+  /**
+   * Find and Authenticate a User
+   *
+   * @remarks
+   * Finds a user by email address and compares their submitted password with the value stored in the database
+   *
+   * @param email
+   * @param password
+   * @returns The found user if email and password are correct | undefined
+   */
+  static async findAndAuthenticate({
+    email,
+    password,
+  }: AuthenticationArguments): Promise<User | undefined> {
+    const user = await this.createQueryBuilder('user')
+      .where('user.email = :email', { email })
+      .addSelect('user.password') // Select hidden password column
+      .getOne();
+
+    if (!user) return;
+
+    // Compare password argument with hashed password
+    if (!(await compare(password, user.password))) return;
+
+    return user;
+  }
+
+  // Relationship fields
 
   // User can have many pets
   @Field(() => [Pet], {
