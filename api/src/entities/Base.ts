@@ -1,4 +1,3 @@
-import { GraphQLUUID } from 'graphql-custom-types';
 import { Field, ID, ObjectType } from 'type-graphql';
 import {
   BaseEntity,
@@ -24,7 +23,7 @@ abstract class BaseEntityDates extends BaseEntity {
 
 @ObjectType()
 abstract class BaseEntityUuid extends BaseEntityDates {
-  @Field(() => GraphQLUUID)
+  @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   readonly id!: String;
 }
