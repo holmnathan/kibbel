@@ -3,11 +3,11 @@ import type Context from '@kibbel/Context';
 import { AuthenticationResponse, User } from '@kibbel/entities';
 import {
   AuthenticationArguments,
-  CreateUserInput,
-  UpdateUserInput
+  ChangePasswordArguments,
+  UpdateUserInput,
+  UserInput
 } from '@kibbel/inputs';
 import { AuthenticationError, UserInputError } from 'apollo-server-fastify';
-import { compare, hash } from 'bcrypt';
 import {
   Arg,
   Args,
@@ -23,7 +23,7 @@ class UserResolver {
   // Find a User by ID --------------------------------------------------------
   @Authorized()
   @Query(() => User)
-  async currentUser(
+  async userInfo(
     @Ctx()
     {
       request: {
@@ -40,9 +40,14 @@ class UserResolver {
       tokenType: 'ACCESS',
     });
 
-    const user = await User.findOne({ id: payload!['id'] });
+    if (!payload)
+      throw new AuthenticationError(
+        'Request contained an invalid access token'
+      );
 
-    if (!user) throw new UserInputError('User not found with ID');
+    const user = await User.findOne({ id: payload['id'] });
+
+    if (!user) throw new AuthenticationError('User not found');
 
     return user;
   }
@@ -53,21 +58,19 @@ class UserResolver {
     return User.find();
   }
 
-  // Authorize a User ------------------------------------------------------------
+  // Authorize a User ---------------------------------------------------------
   @Mutation(() => AuthenticationResponse)
-  async Authorize(
+  async authorize(
     @Args() { email, password }: AuthenticationArguments,
     @Ctx() { reply }: Context
   ): Promise<AuthenticationResponse> {
     // Check to see if user already exists
-    const user = await User.findOne({ email });
-    if (!user) {
-      throw new UserInputError('Incorrect email address or password');
-    }
+    const user = await User.findAndAuthenticate({
+      email,
+      password,
+    });
 
-    // Compare passwords
-    const isValidPassword = await compare(password, user.password);
-    if (!isValidPassword) {
+    if (!user) {
       throw new UserInputError('Incorrect email address or password');
     }
 
@@ -86,30 +89,55 @@ class UserResolver {
   // Create a User Account ----------------------------------------------------
   @Mutation(() => User)
   async createUser(
-    @Arg('data') { password }: CreateUserInput,
-    @Arg('data') data: CreateUserInput
+    @Arg('data') { password, ...data }: UserInput
   ): Promise<User | false> {
-    const user = User.create(data);
-    user['password'] = await hash(password, 10);
+    try {
+      const user = User.create({ ...data });
+      user.password = password;
+      await user.save();
 
-    await user.save();
+      if (!user) throw new UserInputError('Unable to create new user');
+      return user;
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  }
 
-    if (!user) throw new UserInputError('Testing 1234');
+  // Change User Password -----------------------------------------------------
+  @Authorized()
+  @Mutation(() => User)
+  async changePassword(
+    @Args()
+    { email, password, newPassword }: ChangePasswordArguments
+  ): Promise<User | false> {
+    // Verify existing password is correct
+    const user = await User.findAndAuthenticate({ email, password });
+    if (!user) throw new UserInputError('Existing password is incorrect');
 
+    // Validate new password is distinct from existing password
+    if (user && password === newPassword)
+      throw new UserInputError(
+        'New password cannot be the same as existing password'
+      );
+
+    // Assign new password to user
+    const data = Object.assign(user, { password: newPassword });
+    await user.save({ data });
     return user;
   }
 
   // Update a User by ID ------------------------------------------------------
-  @Mutation(() => User)
   @Authorized()
-  async updateUser(@Arg('id') id: string, @Arg('data') data: UpdateUserInput) {
+  @Mutation(() => User)
+  async updateUser(@Arg('id') id: string, @Arg('data') input: UpdateUserInput) {
     try {
-      const user = await User.findOne({ where: { id } });
-      if (!user) {
-        throw new Error('User not found');
-      }
-      Object.assign(user, data);
-      await user.save();
+      const user = await User.findOneOrFail({ id });
+
+      // Overwrite fields with new data
+      const data = Object.assign(user, input);
+
+      await user.save({ data });
       return user;
     } catch (error) {
       return error;
