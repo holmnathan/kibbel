@@ -10,7 +10,7 @@ import {
 import { ArgsType, Field, InputType } from 'type-graphql';
 
 @InputType({ description: 'Register a new user' })
-class CreateUserInput implements Partial<User> {
+class UserInput implements Partial<User> {
   @Field()
   @IsNotEmpty({ message: 'Enter a full name' })
   name!: string;
@@ -39,7 +39,7 @@ class CreateUserInput implements Partial<User> {
 }
 
 @InputType({ description: 'Update an existing user profile' })
-class UpdateUserInput implements Partial<User> {
+class UpdateUserInput implements Omit<Partial<User>, 'password'> {
   @Field({ nullable: true })
   name?: string;
 
@@ -50,9 +50,6 @@ class UpdateUserInput implements Partial<User> {
   @Field({ nullable: true })
   @IsEmail()
   email?: string;
-
-  @Field({ nullable: true })
-  password?: string;
 
   @Field({ nullable: true })
   @IsFQDN()
@@ -69,4 +66,15 @@ class AuthenticationArguments {
   password!: string;
 }
 
-export { CreateUserInput, UpdateUserInput, AuthenticationArguments };
+@ArgsType()
+class ChangePasswordArguments extends AuthenticationArguments {
+  @Field()
+  newPassword!: string;
+}
+
+export {
+  UserInput,
+  UpdateUserInput,
+  AuthenticationArguments,
+  ChangePasswordArguments,
+};
