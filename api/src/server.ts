@@ -7,12 +7,9 @@ import { appClose, database } from '@kibbel/plugins';
 // Import Local Packages
 import { UserAuthenticationResolver, UserResolver } from '@kibbel/resolvers';
 import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
-import {
-  ApolloServer,
-  ApolloServerFastifyConfig
-} from 'apollo-server-fastify';
+import { ApolloServer, ApolloServerFastifyConfig } from 'apollo-server-fastify';
 import chalk from 'chalk';
-import fastify, { FastifyServerOptions } from 'fastify';
+import Fastify, { FastifyServerOptions } from 'fastify';
 import fastifyCookie, { FastifyCookieOptions } from 'fastify-cookie';
 import fastifyCors, { FastifyCorsOptions } from 'fastify-cors';
 import fastifyRedis, { FastifyRedisPluginOptions } from 'fastify-redis';
@@ -95,6 +92,7 @@ const createServer = async () => {
     const cookieToken = request.cookies['kibbel'];
 
     try {
+      if (!cookieToken) throw new Error('No valid refresh cookie in request');
       const refreshToken = await RefreshToken.verify(cookieToken);
       if (!refreshToken) throw new Error('Unable to validate refresh cookie');
 
