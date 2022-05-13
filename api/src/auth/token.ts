@@ -161,7 +161,8 @@ class AuthenticationToken extends Token implements IAuthenticationToken {
         );
 
       const revokedToken = await redis.hgetall(payload.jti);
-      if (!revokedToken) return new this(payload) as InstanceType<Type>;
+      if (!revokedToken || Object.entries(revokedToken).length === 0)
+        return new this(payload) as InstanceType<Type>;
 
       const invalidAt = new Date(Number(revokedToken['invalidAt']));
       const currentTime = new Date();
