@@ -1,3 +1,4 @@
-import startServer from './server';
+import { startServer } from './server';
+export { fastify } from './server';
 
 startServer();
