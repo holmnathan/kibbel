@@ -6,6 +6,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "baseUrl": ".", // Required if “paths” is specified
+    "useDefineForClassFields": true,
     "paths": {
       // Relative to "baseUrl"
       "@kibbel/shared": ["../shared"],
