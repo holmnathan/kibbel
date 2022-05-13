@@ -5,7 +5,12 @@ declare global {
       NODE_ENV: 'development' | 'production';
       PORT?: number; // Coerce to number before use
       ACCESS_TOKEN_SECRET: string;
+      ACCESS_TOKEN_DURATION: number;
+      ID_TOKEN_SECRET: string;
+      ID_TOKEN_DURATION: number;
       REFRESH_TOKEN_SECRET: string;
+      REFRESH_TOKEN_DURATION: number;
+      REFRESH_TOKEN_INTERVAL: number;
       CORS_ORIGIN_CLIENTS: string; // A JSON array of strings, must be split by "," before use.
       TYPEORM_CONNECTION: string;
       TYPEORM_HOST: string;
