@@ -1,106 +1,108 @@
-import { createToken, getBearerToken, verifyToken } from '@kibbel/auth';
-import type Context from '@kibbel/Context';
-import { AuthenticationResponse, User } from '@kibbel/entities';
+import { AccessToken, IDToken, RefreshToken } from '@kibbel/auth';
+import type { IContext } from '@kibbel/Context';
+import {
+  AllUsersResponse,
+  AuthenticationResponse,
+  User
+} from '@kibbel/entities';
 import {
   AuthenticationArguments,
-  ChangePasswordArguments,
   UpdateUserInput,
   UserInput
 } from '@kibbel/inputs';
-import { AuthenticationError, UserInputError } from 'apollo-server-fastify';
+import { UserInputError } from 'apollo-server-fastify';
 import {
   Arg,
   Args,
   Authorized,
   Ctx,
+  FieldResolver,
   Mutation,
   Query,
-  Resolver
+  Resolver,
+  ResolverInterface,
+  Root
 } from 'type-graphql';
 
-@Resolver(User)
-class UserResolver {
-  // Find a User by ID --------------------------------------------------------
-  @Authorized()
-  @Query(() => User)
-  async userInfo(
-    @Ctx()
-    {
-      request: {
-        headers: { authorization },
-      },
-    }: Context
-  ) {
-    const token = getBearerToken(authorization);
-    if (!token)
-      throw new AuthenticationError('Request did not contain an access token');
-
-    const payload = verifyToken({
-      token,
-      tokenType: 'ACCESS',
-    });
-
-    if (!payload)
-      throw new AuthenticationError(
-        'Request contained an invalid access token'
-      );
-
-    const user = await User.findOne({ id: payload['id'] });
-
-    if (!user) throw new AuthenticationError('User not found');
-
-    return user;
-  }
-
-  // Get all Users ------------------------------------------------------------
-  @Query(() => [User])
-  users() {
-    return User.find();
-  }
-
+@Resolver(() => AuthenticationResponse)
+class UserAuthenticationResolver
+  implements ResolverInterface<AuthenticationResponse>
+{
   // Authorize a User ---------------------------------------------------------
-  @Mutation(() => AuthenticationResponse)
+  @Mutation(() => AuthenticationResponse, {
+    description: 'Authorizes an end user, and sets OIDC tokens',
+  })
   async authorize(
-    @Args() { email, password }: AuthenticationArguments,
-    @Ctx() { reply }: Context
+    @Args() { email, password }: AuthenticationArguments
   ): Promise<AuthenticationResponse> {
     // Check to see if user already exists
     const user = await User.findAndAuthenticate({
       email,
       password,
     });
+    return { user };
+  }
 
-    if (!user) {
-      throw new UserInputError('Incorrect email address or password');
-    }
+  @FieldResolver()
+  id_token(@Root() { user }: AuthenticationResponse): string {
+    // Return an end user ID token
+    return new IDToken(user).generate();
+  }
 
+  @FieldResolver()
+  token(@Root() { user }: AuthenticationResponse): string {
+    // Return a JWT access token
+    return new AccessToken(user).generate();
+  }
+
+  @FieldResolver()
+  refresh_token(
+    @Root() { user }: AuthenticationResponse,
+    @Ctx() { reply }: IContext
+  ): boolean {
+    const refreshToken = new RefreshToken(user).generate();
     // Set a cookie with JWT refresh token as payload
-    const refreshToken = createToken({ user, tokenType: 'REFRESH' });
-    const maxAge = 1000 * 60 * 60 * 24 * 7;
-    reply.setCookie('kibbel', refreshToken, {
-      maxAge,
-    });
+    try {
+      reply.setCookie('kibbel', refreshToken);
+      return true;
+    } catch (error) {
+      reply.log.error(error);
+      return false;
+    }
+  }
+}
 
-    // Return a JWT access token with Authentication Response as payload
-    const token = createToken({ user, tokenType: 'ACCESS' });
-    return { token, user };
+@Resolver(User)
+class UserResolver {
+  // Get authorized user info -------------------------------------------------
+  @Authorized()
+  @Query(() => User)
+  async userInfo(
+    @Ctx()
+    { user }: IContext
+  ) {
+    return user!;
+  }
+
+  // Get all Users ------------------------------------------------------------
+  @Authorized()
+  @Query(() => [AllUsersResponse])
+  users() {
+    return User.find();
   }
 
   // Create a User Account ----------------------------------------------------
   @Mutation(() => User)
   async createUser(
-    @Arg('data') { password, ...data }: UserInput
-  ): Promise<User | false> {
+    @Arg('data') { ...data }: UserInput
+  ): Promise<User | undefined> {
     try {
-      const user = User.create({ ...data });
-      user.password = password;
+      const user = User.create(data);
       await user.save();
-
-      if (!user) throw new UserInputError('Unable to create new user');
       return user;
     } catch (error) {
-      console.log(error);
-      return false;
+      if (error instanceof UserInputError) throw error;
+      return;
     }
   }
 
@@ -108,56 +110,88 @@ class UserResolver {
   @Authorized()
   @Mutation(() => User)
   async changePassword(
-    @Args()
-    { email, password, newPassword }: ChangePasswordArguments
+    @Arg('password') password: string,
+    @Arg('newPassword') newPassword: string,
+    @Ctx() { user }: IContext
   ): Promise<User | false> {
-    // Verify existing password is correct
-    const user = await User.findAndAuthenticate({ email, password });
-    if (!user) throw new UserInputError('Existing password is incorrect');
+    const { email } = user!;
+    try {
+      // Verify existing password is correct
+      const user = await User.findAndAuthenticate({ email, password });
 
-    // Validate new password is distinct from existing password
-    if (user && password === newPassword)
-      throw new UserInputError(
-        'New password cannot be the same as existing password'
-      );
+      // Validate new password is distinct from existing password
+      if (user && password === newPassword)
+        throw new UserInputError(
+          'New password cannot be the same as existing password'
+        );
 
-    // Assign new password to user
-    const data = Object.assign(user, { password: newPassword });
-    await user.save({ data });
-    return user;
+      // Assign new password to user
+      const data = Object.assign(user, { password: newPassword });
+      await user.save({ data });
+      return user;
+    } catch (error) {
+      if (error instanceof UserInputError) throw error;
+      return false;
+    }
   }
 
-  // Update a User by ID ------------------------------------------------------
+  // Update the authorized User -----------------------------------------------
   @Authorized()
   @Mutation(() => User)
-  async updateUser(@Arg('id') id: string, @Arg('data') input: UpdateUserInput) {
+  async updateUser(
+    @Ctx() { user }: IContext,
+    @Args() { ...updatedUser }: UpdateUserInput
+  ) {
     try {
-      const user = await User.findOneOrFail({ id });
-
       // Overwrite fields with new data
-      const data = Object.assign(user, input);
+      const data = Object.assign(user, updatedUser);
 
-      await user.save({ data });
+      await user!.save({ data });
       return user;
     } catch (error) {
       return error;
     }
   }
 
-  // Delete a User by ID ------------------------------------------------------
+  // Delete the authorized user -----------------------------------------------
+  @Authorized()
   @Mutation(() => Boolean)
-  async deleteUser(@Arg('id') id: string) {
+  async deleteUser(@Ctx() { user }: IContext) {
     try {
-      const user = await User.findOne({ where: { id } });
-      if (!user) {
-        throw new Error('User not found');
-      }
-      await user.remove();
+      await user!.remove();
       return true;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  @Authorized()
+  @Mutation(() => Boolean)
+  async signOut(
+    @Ctx()
+    {
+      request: {
+        cookies: { kibbel: refreshToken },
+      },
+      reply,
+      tokenPayload,
+    }: IContext
+  ) {
+    try {
+      await tokenPayload?.revoke();
+
+      if (refreshToken) {
+        const refreshPayload = await RefreshToken.verify(refreshToken);
+
+        if (refreshPayload) await refreshPayload.revoke();
+
+        reply.clearCookie('kibbel');
+        return true;
+      }
     } catch (error) {
       return error;
     }
   }
 }
 
-export { UserResolver };
+export { UserResolver, UserAuthenticationResolver };
