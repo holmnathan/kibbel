@@ -31,6 +31,7 @@ class UserInput implements Partial<User> {
   email!: string;
 
   @Field()
+  @IsNotEmpty({ message: 'Enter a password' })
   password!: string;
 
   @Field({ nullable: true })
@@ -38,7 +39,7 @@ class UserInput implements Partial<User> {
   picture?: string;
 }
 
-@InputType({ description: 'Update an existing user profile' })
+@ArgsType()
 class UpdateUserInput implements Omit<Partial<User>, 'password'> {
   @Field({ nullable: true })
   name?: string;
@@ -57,7 +58,7 @@ class UpdateUserInput implements Omit<Partial<User>, 'password'> {
 }
 
 @ArgsType()
-class AuthenticationArguments {
+class AuthenticationArguments implements Partial<User> {
   @Field()
   @IsEmail()
   email!: string;
