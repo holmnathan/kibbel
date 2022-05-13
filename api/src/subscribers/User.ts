@@ -32,8 +32,9 @@ class UserSubscriber implements EntitySubscriberInterface<User> {
    * @returns Promise<void>
    */
   private async hashPassword(entity: User): Promise<void> {
-    if (entity.password)
+    if (entity.password) {
       entity.password = await hash(entity.password, SALT_ROUNDS);
+    }
   }
 
   /**
