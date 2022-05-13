@@ -1,44 +1,61 @@
 // Kibbel API Server ----------------------------------------------------------
 
 // Import NPM Packages
-import { authChecker, createToken, verifyToken } from '@kibbel/auth';
+import { AccessToken, authChecker, RefreshToken } from '@kibbel/auth';
 import { User } from '@kibbel/entities';
 import { appClose, database } from '@kibbel/plugins';
 // Import Local Packages
-import { UserResolver } from '@kibbel/resolvers';
+import { UserAuthenticationResolver, UserResolver } from '@kibbel/resolvers';
 import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
-import { ApolloServer, ApolloServerFastifyConfig } from 'apollo-server-fastify';
+import {
+  ApolloServer,
+  ApolloServerFastifyConfig
+} from 'apollo-server-fastify';
 import chalk from 'chalk';
 import fastify, { FastifyServerOptions } from 'fastify';
 import fastifyCookie, { FastifyCookieOptions } from 'fastify-cookie';
 import fastifyCors, { FastifyCorsOptions } from 'fastify-cors';
+import fastifyRedis, { FastifyRedisPluginOptions } from 'fastify-redis';
+import type { PrettyOptions } from 'fastify/types/logger';
 import 'reflect-metadata';
 import { buildSchema } from 'type-graphql';
+import { userContext } from './Context';
 
 // Environment variables ------------------------------------------------------
 const PORT = process.env.PORT ?? 3000;
 const CORS_ORIGIN_CLIENTS = process.env.CORS_ORIGIN_CLIENTS.split(',');
 const isProduction = process.env.NODE_ENV === 'production';
 
+const prettyPrintOptions: PrettyOptions = {
+  translateTime: 'Sys:h:MM:ss TT',
+  ignore: 'pid,hostname',
+  levelFirst: true,
+};
+
+const options: FastifyServerOptions = {
+  logger: {
+    prettyPrint: !isProduction ? prettyPrintOptions : false,
+  },
+};
+const fastify = Fastify(options);
+
+const { log } = fastify;
+
 // Create Fastify Server  -----------------------------------------------------
-const createServer = async (options: FastifyServerOptions = {}) => {
+const createServer = async () => {
   // Instantiate Fastify Server
-  const app = fastify(options);
 
   const apolloServerOptions: ApolloServerFastifyConfig = {
     schema: await buildSchema({
-      resolvers: [UserResolver],
+      resolvers: [UserResolver, UserAuthenticationResolver],
       authChecker,
       dateScalarMode: 'timestamp',
     }),
     plugins: [
-      appClose(app),
-      ApolloServerPluginDrainHttpServer({ httpServer: app.server }),
+      appClose(fastify),
+      ApolloServerPluginDrainHttpServer({ httpServer: fastify.server }),
     ],
-    context: ({ request, reply }) => ({
-      request,
-      reply,
-    }),
+    context: userContext,
     introspection: !isProduction,
   };
 
@@ -58,79 +75,67 @@ const createServer = async (options: FastifyServerOptions = {}) => {
       httpOnly: true,
       sameSite: isProduction ? 'strict' : 'lax',
       secure: isProduction,
-      path: '/refresh-token',
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 Days
-      expires: new Date('2022-12-31'),
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 Days in seconds
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
     },
   };
 
-  app.register(fastifyCors, fastifyCorsOptions);
-  app.register(database);
-  app.register(server.createHandler({ cors: false })); // Apollo defers to CORS options in Fastify
-  app.register(fastifyCookie, fastifyCookieOptions);
+  const fastifyRedisOptions: FastifyRedisPluginOptions = {};
+
+  fastify.register(fastifyRedis, fastifyRedisOptions);
+  fastify.register(fastifyCors, fastifyCorsOptions);
+  fastify.register(database);
+  fastify.register(server.createHandler({ cors: false })); // Apollo defers to CORS options in Fastify
+  fastify.register(fastifyCookie, fastifyCookieOptions);
 
   // Refresh Token Route
-  app.post('/refresh-token', async (request, reply) => {
+  fastify.post('/refresh-token', async (request, reply) => {
     // Get existing refresh token from request cookie
-    const refreshToken = request.cookies['kibbel'];
-    console.log(refreshToken);
+    const cookieToken = request.cookies['kibbel'];
 
-    // Verify cookie from request
-    if (!refreshToken) {
-      app.log.warn('Refresh Token not found');
-      return { ok: false, token: null };
+    try {
+      const refreshToken = await RefreshToken.verify(cookieToken);
+      if (!refreshToken) throw new Error('Unable to validate refresh cookie');
+
+      const isRevoked = await refreshToken.revoke();
+      if (!isRevoked) throw new Error();
+
+      const { sub: id } = refreshToken;
+      const user = id ? await User.findOneOrFail({ id }) : null;
+      if (!user) {
+        throw new Error('Unable to locate user from refresh token');
+      }
+
+      // Refresh token is valid:
+      // Create a new refresh token and set as a cookie on client
+      const refreshtoken = new RefreshToken(user).generate();
+      reply.cookie('kibbel', refreshtoken);
+
+      // Create a new access token and return to client
+      const token = new AccessToken(user).generate();
+      return { ok: true, token };
+    } catch (error) {
+      reply.clearCookie('kibbel');
+      reply.code(401);
+      throw error;
     }
-    const payload = verifyToken({ token: refreshToken, tokenType: 'REFRESH' });
-    if (!payload) {
-      app.log.warn('Invalid Refresh Token');
-      return { ok: false, token: null };
-    }
-
-    const user = await User.findOne({ id: payload['id'] });
-    if (!user) {
-      app.log.warn('Invalid Refresh Token');
-      return { ok: false, token: null };
-    }
-
-    // Refresh token is valid:
-    // Create a new refresh token and set as a cookie on client
-    const refreshtoken = createToken({
-      user,
-      tokenType: 'REFRESH',
-    });
-
-    reply.cookie('kibbel', refreshtoken);
-
-    // Create a new access token and return to client
-    const token = createToken({ user, tokenType: 'ACCESS' });
-    return { ok: true, token };
   });
 
-  app.listen(PORT, (error) => {
-    if (error) app.log.error(error);
+  fastify.listen(PORT, (error) => {
+    if (error) log.error(error);
   });
 };
 
 // Start Fastify Server  ------------------------------------------------------
 const startServer = async () => {
   try {
-    await createServer({
-      logger: {
-        prettyPrint: !isProduction
-          ? {
-              translateTime: 'Sys:h:MM:ss TT',
-              ignore: 'pid,hostname',
-              levelFirst: true,
-            }
-          : false,
-      },
-    });
-    console.error(chalk.greenBright('Kibbel Server'));
+    await createServer();
+    console.error(chalk.greenBright('\nKibbel Server'));
   } catch (error) {
     console.error(chalk.red('Kibbel Server'));
     console.error(error);
     process.exit(1);
   }
 };
-
-export default startServer;
+export { startServer, fastify };
