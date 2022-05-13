@@ -1,15 +1,10 @@
 import { BaseEntityUuid, Food, Pet } from '@kibbel/entities';
 import type { AuthenticationArguments } from '@kibbel/inputs';
 import type { ObjectDescription, OidcClaims } from '@kibbel/shared';
+import { UserInputError } from 'apollo-server-fastify';
 import { compare } from 'bcrypt';
 import { Field, ObjectType } from 'type-graphql';
-import {
-  Column,
-  Entity,
-  JoinTable,
-  ManyToMany,
-  OneToMany
-} from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
 
 /**
  * Shared TypeGraphQL descriptions and TypeORM comments
@@ -99,7 +94,7 @@ class User extends BaseEntityUuid implements OidcClaims.Standard {
    * Password is hashed before insert and update @see {@link UserSubscriber}
    */
   @Column({ select: false })
-  password!: string;
+  password?: string;
 
   /**
    * Find and Authenticate a User
@@ -114,18 +109,24 @@ class User extends BaseEntityUuid implements OidcClaims.Standard {
   static async findAndAuthenticate({
     email,
     password,
-  }: AuthenticationArguments): Promise<User | undefined> {
-    const user = await this.createQueryBuilder('user')
-      .where('user.email = :email', { email })
-      .addSelect('user.password') // Select hidden password column
-      .getOne();
+  }: AuthenticationArguments): Promise<User> {
+    try {
+      const user = await this.createQueryBuilder('user')
+        .where('user.email = :email', { email })
+        .addSelect('user.password') // Select hidden password column
+        .getOneOrFail();
 
-    if (!user) return;
+      // Compare password argument with hashed password
+      const isPasswordMatch = await compare(password, user.password!);
+      if (!isPasswordMatch)
+        throw new UserInputError('Incorrect email address or password');
 
-    // Compare password argument with hashed password
-    if (!(await compare(password, user.password))) return;
-
-    return user;
+      // Sanitize output / Strip password field
+      delete user.password;
+      return user;
+    } catch (error) {
+      throw new UserInputError(error as string);
+    }
   }
 
   // Relationship fields
@@ -151,16 +152,29 @@ class User extends BaseEntityUuid implements OidcClaims.Standard {
 
 @ObjectType({ description: 'Authenticated User Response' })
 class AuthenticationResponse {
-  @Field(() => User, { description: 'The User', nullable: true })
-  user?: User;
-  @Field({ description: 'Base64 encoded JSON Web Token (JWT) Access Token' })
-  token!: string;
   @Field({
-    description: 'Base64 encoded JSON Web Token (JWT) Refresh Token',
-    nullable: true,
+    description: 'Base64 encoded JSON Web Token (JWT) User ID Token',
   })
-  refresh_token?: string;
+  id_token?: string;
+  @Field({
+    description:
+      'Sets a browser cookie named "kibbel" with a Base64 encoded JSON Web Token (JWT) Refresh Token',
+  })
+  refresh_token?: boolean;
+  @Field({
+    description: 'Base64 encoded JSON Web Token (JWT) Access Token',
+  })
+  token?: string;
+  user!: User;
+}
+
+@ObjectType({ description: 'Privacy respecting list of all users' })
+class AllUsersResponse implements Pick<User, 'email' | 'nickname'> {
+  @Field({ description: description.email })
+  email!: string;
+  @Field({ description: description.nickname })
+  nickname!: string;
 }
 
 export default User;
-export { User, AuthenticationResponse };
+export { User, AuthenticationResponse, AllUsersResponse };
