@@ -1,5 +1,5 @@
+import type { FetchResult, NextLink, Operation } from "@apollo/client";
 import { ApolloLink, Observable } from "@apollo/client";
-import type { FetchResult, Operation, NextLink } from "@apollo/client";
 import { User } from "@kibbel/library/User";
 
 class AuthLink extends ApolloLink {
@@ -12,8 +12,9 @@ class AuthLink extends ApolloLink {
 
   public setAuthHeader = (operation: Operation, user: User): void => {
     const { token } = user;
+    const authorizationHeader = `Bearer ${token}`;
     if (token) {
-      operation.setContext({ headers: { Authorization: token } });
+      operation.setContext({ headers: { Authorization: authorizationHeader } });
     }
   };
 
