@@ -1,9 +1,9 @@
-import { NextPage } from "next";
 import { useQuery } from "@apollo/client";
-import { CurrentUserDocument } from "@kibbel/graphql/generated";
+import { UserInfoDocument } from "@kibbel/graphql/generated";
+import { NextPage } from "next";
 
 const Dashboard: NextPage = () => {
-  const { data, error, loading } = useQuery(CurrentUserDocument);
+  const { data, error, loading } = useQuery(UserInfoDocument);
 
   if (loading) return <p>Loading ...</p>;
   if (error) return <p>Error: {error.message}</p>;
@@ -11,7 +11,7 @@ const Dashboard: NextPage = () => {
   return (
     <>
       <h1>Dashboard</h1>
-      <p>{data?.currentUser.email}</p>
+      <p>{data?.userInfo.email}</p>
     </>
   );
 };
