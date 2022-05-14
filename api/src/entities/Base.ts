@@ -25,14 +25,14 @@ abstract class BaseEntityDates extends BaseEntity {
 abstract class BaseEntityUuid extends BaseEntityDates {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
-  readonly id!: String;
+  readonly id!: string;
 }
 
 @ObjectType()
 abstract class BaseEntityId extends BaseEntityDates {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
-  readonly id!: Number;
+  readonly id!: number;
 }
 
 export { BaseEntityUuid, BaseEntityId, BaseEntityDates };
