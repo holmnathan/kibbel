@@ -19,7 +19,7 @@ const SignIn: NextPage = () => {
   const [submitionErrorMessage, setSubmitionErrorMessage] = useState<
     string | null
   >(null);
-  const [signInUser, { error }] = useMutation(AuthorizeDocument);
+  const [authorize, { error }] = useMutation(AuthorizeDocument);
   const initialValues = {
     email: "",
     password: "",
@@ -43,12 +43,12 @@ const SignIn: NextPage = () => {
         validationSchema={validationSchema}
         onSubmit={async (values, { setSubmitting }) => {
           try {
-            await signInUser({
+            await authorize({
               variables: values,
               onError: (error) => {
                 throw error;
               },
-              onCompleted: ({ signInUser: { token } }) => {
+              onCompleted: ({ authorize: { token } }) => {
                 user.token = token;
                 router.push("/dashboard");
               },
