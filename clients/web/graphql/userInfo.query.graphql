@@ -1,0 +1,9 @@
+query userInfo {
+  userInfo {
+    email
+    name
+    email_verified
+    createdAt
+    updatedAt
+  }
+}

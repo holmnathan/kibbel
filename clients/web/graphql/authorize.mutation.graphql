@@ -1,0 +1,7 @@
+mutation authorize($email: String!, $password: String!) {
+  authorize(email: $email, password: $password) {
+    token
+    id_token
+    refresh_token
+  }
+}

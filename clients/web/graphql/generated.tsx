@@ -11,110 +11,142 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
-  /** The javascript `Date` as string. Type represents date and time as the ISO Date string. */
-  DateTime: any;
+  /** The javascript `Date` as integer. Type represents date and time as number of milliseconds from start of UNIX epoch. */
+  Timestamp: any;
 };
 
-/** Register a new user */
-export type CreateUserInput = {
-  fullName: Scalars['String'];
-  displayName?: InputMaybe<Scalars['String']>;
+/** Privacy respecting list of all users */
+export type AllUsersResponse = {
+  __typename?: 'AllUsersResponse';
+  /** End-User’s preferred e-mail address. Its value MUST conform to the RFC 5322 [RFC5322] addr-spec syntax. The RP MUST NOT rely upon this value being unique. */
   email: Scalars['String'];
-  password: Scalars['String'];
-  imageUrl?: InputMaybe<Scalars['String']>;
+  /** Casual name of the End-User that may or may not be the same as the given_name. For instance, a nickname value of Mike might be returned alongside a given_name value of Michael. */
+  nickname: Scalars['String'];
+};
+
+/** Authenticated User Response */
+export type AuthenticationResponse = {
+  __typename?: 'AuthenticationResponse';
+  /** Base64 encoded JSON Web Token (JWT) User ID Token */
+  id_token: Scalars['String'];
+  /** Sets a browser cookie named "kibbel" with a Base64 encoded JSON Web Token (JWT) Refresh Token */
+  refresh_token: Scalars['Boolean'];
+  /** Base64 encoded JSON Web Token (JWT) Access Token */
+  token: Scalars['String'];
 };
 
 /** Dietary Restrictions Schema */
 export type DietRestriction = {
   __typename?: 'DietRestriction';
-  name: Scalars['String'];
+  createdAt: Scalars['Timestamp'];
   foods: Array<Food>;
+  id: Scalars['ID'];
+  name: Scalars['String'];
   pets: Array<Pet>;
+  updatedAt: Scalars['Timestamp'];
 };
 
 /** Food Schema */
 export type Food = {
   __typename?: 'Food';
-  /** The pet food brand name or product line */
-  name: Scalars['String'];
-  /** The pet food manufacturer */
-  manufacturer?: Maybe<Scalars['String']>;
+  /** The calories per kilogram of pet food */
+  caloriesPerKg: Scalars['Float'];
+  createdAt: Scalars['Timestamp'];
+  dietRestrictions: Array<DietRestriction>;
   /** The pet food flavor or recipe (ex. “Turkey and Duck”) */
   flavor?: Maybe<Scalars['String']>;
+  id: Scalars['ID'];
+  /** The pet food manufacturer */
+  manufacturer?: Maybe<Scalars['String']>;
+  /** The pet food brand name or product line */
+  name: Scalars['String'];
+  updatedAt: Scalars['Timestamp'];
   /** The pet food product or manufacturer URL */
   url?: Maybe<Scalars['String']>;
-  /** The calories per kilogram of pet food */
-  kilogramCalories: Scalars['Float'];
   users: Array<User>;
-  dietRestrictions: Array<DietRestriction>;
 };
 
 /** Meal Schema */
 export type Meal = {
   __typename?: 'Meal';
-  /** User defined sort order within a meal plan */
-  sortOrder: Scalars['Float'];
+  createdAt: Scalars['Timestamp'];
+  id: Scalars['ID'];
+  mealPlan: MealPlan;
   name?: Maybe<Scalars['String']>;
   servings: Array<Serving>;
-  mealPlan: MealPlan;
+  /** User defined sort order within a meal plan */
+  sortOrder: Scalars['Float'];
+  updatedAt: Scalars['Timestamp'];
 };
 
 /** Meal Plan Schema */
 export type MealPlan = {
   __typename?: 'MealPlan';
+  createdAt: Scalars['Timestamp'];
+  id: Scalars['ID'];
+  meals: Array<Meal>;
   name: Scalars['String'];
   pets: Array<Pet>;
-  meals: Array<Meal>;
+  updatedAt: Scalars['Timestamp'];
 };
 
 export type Mutation = {
   __typename?: 'Mutation';
-  signInUser: SigninResponse;
+  /** Authorizes an end user, and sets OIDC tokens */
+  authorize: AuthenticationResponse;
+  changePassword: User;
   createUser: User;
-  updateUser: User;
   deleteUser: Scalars['Boolean'];
+  signOut: Scalars['Boolean'];
+  updateUser: User;
 };
 
 
-export type MutationSignInUserArgs = {
+export type MutationAuthorizeArgs = {
   email: Scalars['String'];
   password: Scalars['String'];
 };
 
 
+export type MutationChangePasswordArgs = {
+  newPassword: Scalars['String'];
+  password: Scalars['String'];
+};
+
+
 export type MutationCreateUserArgs = {
-  data: CreateUserInput;
+  data: UserInput;
 };
 
 
 export type MutationUpdateUserArgs = {
-  data: UpdateUserInput;
-  id: Scalars['String'];
-};
-
-
-export type MutationDeleteUserArgs = {
-  id: Scalars['String'];
+  email?: InputMaybe<Scalars['String']>;
+  name?: InputMaybe<Scalars['String']>;
+  nickname?: InputMaybe<Scalars['String']>;
+  picture?: InputMaybe<Scalars['String']>;
 };
 
 /** Pet Schema */
 export type Pet = {
   __typename?: 'Pet';
-  /** The pet’s name */
-  name: Scalars['String'];
   /** The pet’s date of birth */
-  birthDate: Scalars['DateTime'];
-  /** URL of pet’s uploaded profile image */
-  imageUrl?: Maybe<Scalars['String']>;
-  /** The pet’s reproductive status */
-  isIntact: Scalars['Boolean'];
-  /** The pet’s species */
-  species: PetSpecies;
+  birthdate: Scalars['Timestamp'];
+  createdAt: Scalars['Timestamp'];
+  dietRestrictions: Array<DietRestriction>;
   /** The pet’s gender */
   gender?: Maybe<PetGender>;
+  id: Scalars['ID'];
+  /** The pet’s reproductive status */
+  isIntact: Scalars['Boolean'];
   mealPlan: MealPlan;
+  /** The pet’s name */
+  name: Scalars['String'];
+  /** URL of pet’s uploaded profile image */
+  picture?: Maybe<Scalars['String']>;
+  /** The pet’s species */
+  species: PetSpecies;
+  updatedAt: Scalars['Timestamp'];
   weightHistory: Array<Weight>;
-  dietRestrictions: Array<DietRestriction>;
 };
 
 /** Pet’s gender types */
@@ -131,87 +163,97 @@ export enum PetSpecies {
 
 export type Query = {
   __typename?: 'Query';
-  currentUser: User;
-  users: Array<User>;
+  userInfo: User;
+  users: Array<AllUsersResponse>;
 };
 
 /** Serving Schema */
 export type Serving = {
   __typename?: 'Serving';
-  /** User defined sort order within a meal */
-  sortOrder: Scalars['Float'];
+  createdAt: Scalars['Timestamp'];
+  food: Food;
+  id: Scalars['ID'];
+  meal: Meal;
   /** Serving size in grams */
   size: Scalars['Float'];
-  food: Food;
-  meal: Meal;
-};
-
-/** Login Response */
-export type SigninResponse = {
-  __typename?: 'SigninResponse';
-  /** The logged in user */
-  user: User;
-  /** Base64 encoded JSON Web Token (JWT) */
-  token: Scalars['String'];
-};
-
-/** Update an existing user profile */
-export type UpdateUserInput = {
-  fullName?: InputMaybe<Scalars['String']>;
-  displayName?: InputMaybe<Scalars['String']>;
-  email?: InputMaybe<Scalars['String']>;
-  password?: InputMaybe<Scalars['String']>;
-  imageUrl?: InputMaybe<Scalars['String']>;
+  /** User defined sort order within a meal */
+  sortOrder: Scalars['Float'];
+  updatedAt: Scalars['Timestamp'];
 };
 
 /** User Schema */
 export type User = {
   __typename?: 'User';
-  /** The user’s full or legal name(s) */
-  fullName: Scalars['String'];
-  /** The user’s preferred way to be addressed */
-  displayName?: Maybe<Scalars['String']>;
+  /** End-User's birthday, represented as an ISO 8601:2004 [ISO8601‑2004] YYYY-MM-DD format. The year MAY be 0000, indicating that it is omitted. To represent only the year, YYYY format is allowed. Note that depending on the underlying platform's date related function, providing just year can result in varying month and day, so the implementers need to take this factor into account to correctly process the dates. */
+  birthdate: Scalars['Timestamp'];
+  createdAt: Scalars['Timestamp'];
+  /** End-User’s preferred e-mail address. Its value MUST conform to the RFC 5322 [RFC5322] addr-spec syntax. The RP MUST NOT rely upon this value being unique. */
   email: Scalars['String'];
-  /** URL of user’s uploaded profile image */
-  imageUrl?: Maybe<Scalars['String']>;
-  favoriteFoods: Array<Food>;
+  /** True if the End-User’s e-mail address has been verified; otherwise false. When this Claim Value is true, this means that the OP took affirmative steps to ensure that this e-mail address was controlled by the End-User at the time the verification was performed. The means by which an e-mail address is verified is context-specific, and dependent upon the trust framework or contractual agreements within which the parties are operating. */
+  email_verified: Scalars['Boolean'];
+  /** End user’s favorited or self-created pet foods */
+  favorite_foods: Array<Food>;
+  id: Scalars['ID'];
+  /** End-User’s locale, represented as a BCP47 [RFC5646] language tag. This is typically an ISO 639-1 Alpha-2 [ISO639‑1] language code in lowercase and an ISO 3166-1 Alpha-2 [ISO3166‑1] country code in uppercase, separated by a dash. For example, en-US or fr-CA. */
+  locale?: Maybe<Scalars['String']>;
+  /** End-User’s full name in displayable form including all name parts, possibly including titles and suffixes, ordered according to the End-User’s locale and preferences. */
+  name: Scalars['String'];
+  /** Casual name of the End-User that may or may not be the same as the given_name. For instance, a nickname value of Mike might be returned alongside a given_name value of Michael. */
+  nickname: Scalars['String'];
+  /** End user’s saved pets */
+  pets: Array<Pet>;
+  /** URL of the End-User’s profile picture. This URL MUST refer to an image file (for example, a PNG, JPEG, or GIF image file), rather than to a Web page containing an image. Note that this URL SHOULD specifically reference a profile photo of the End-User suitable for displaying when describing the End-User, rather than an arbitrary photo taken by the End-User. */
+  picture?: Maybe<Scalars['String']>;
+  updatedAt: Scalars['Timestamp'];
+};
+
+/** Register a new user */
+export type UserInput = {
+  email: Scalars['String'];
+  name: Scalars['String'];
+  nickname?: InputMaybe<Scalars['String']>;
+  password: Scalars['String'];
+  picture?: InputMaybe<Scalars['String']>;
 };
 
 /** Weight Schema */
 export type Weight = {
   __typename?: 'Weight';
+  createdAt: Scalars['Timestamp'];
+  id: Scalars['ID'];
+  pet: Pet;
+  updatedAt: Scalars['Timestamp'];
   /** The date pet was weighed */
-  weighDate: Scalars['DateTime'];
+  weighedAt: Scalars['Timestamp'];
   /** Weight of pet in grams */
   weight: Scalars['Float'];
-  pet: Pet;
 };
 
-export type CurrentUserQueryVariables = Exact<{ [key: string]: never; }>;
+export type AuthorizeMutationVariables = Exact<{
+  email: Scalars['String'];
+  password: Scalars['String'];
+}>;
 
 
-export type CurrentUserQuery = { __typename?: 'Query', currentUser: { __typename?: 'User', email: string, fullName: string } };
+export type AuthorizeMutation = { __typename?: 'Mutation', authorize: { __typename?: 'AuthenticationResponse', token: string, id_token: string, refresh_token: boolean } };
 
 export type CreateUserMutationVariables = Exact<{
-  fullName: Scalars['String'];
-  displayName?: InputMaybe<Scalars['String']>;
+  name: Scalars['String'];
+  nickname?: InputMaybe<Scalars['String']>;
   email: Scalars['String'];
   password: Scalars['String'];
-  imageUrl?: InputMaybe<Scalars['String']>;
+  picture?: InputMaybe<Scalars['String']>;
 }>;
 
 
-export type CreateUserMutation = { __typename?: 'Mutation', createUser: { __typename?: 'User', fullName: string, displayName?: string | null, email: string, imageUrl?: string | null } };
+export type CreateUserMutation = { __typename?: 'Mutation', createUser: { __typename?: 'User', name: string, nickname: string, email: string, picture?: string | null } };
 
-export type SignInUserMutationVariables = Exact<{
-  email: Scalars['String'];
-  password: Scalars['String'];
-}>;
+export type UserInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type SignInUserMutation = { __typename?: 'Mutation', signInUser: { __typename?: 'SigninResponse', token: string, user: { __typename?: 'User', email: string, fullName: string, displayName?: string | null } } };
+export type UserInfoQuery = { __typename?: 'Query', userInfo: { __typename?: 'User', email: string, name: string, email_verified: boolean, createdAt: any, updatedAt: any } };
 
 
-export const CurrentUserDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"CurrentUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"currentUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}}]}}]}}]} as unknown as DocumentNode<CurrentUserQuery, CurrentUserQueryVariables>;
-export const CreateUserDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"createUser"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"fullName"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"displayName"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"imageUrl"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createUser"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"fullName"},"value":{"kind":"Variable","name":{"kind":"Name","value":"fullName"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"displayName"},"value":{"kind":"Variable","name":{"kind":"Name","value":"displayName"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"imageUrl"},"value":{"kind":"Variable","name":{"kind":"Name","value":"imageUrl"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"imageUrl"}}]}}]}}]} as unknown as DocumentNode<CreateUserMutation, CreateUserMutationVariables>;
-export const SignInUserDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"signInUser"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"signInUser"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"Argument","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"token"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"fullName"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}}]}}]}}]}}]} as unknown as DocumentNode<SignInUserMutation, SignInUserMutationVariables>;
+export const AuthorizeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"authorize"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"authorize"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"Argument","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"token"}},{"kind":"Field","name":{"kind":"Name","value":"id_token"}},{"kind":"Field","name":{"kind":"Name","value":"refresh_token"}}]}}]}}]} as unknown as DocumentNode<AuthorizeMutation, AuthorizeMutationVariables>;
+export const CreateUserDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"createUser"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"nickname"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"picture"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createUser"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"nickname"},"value":{"kind":"Variable","name":{"kind":"Name","value":"nickname"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"picture"},"value":{"kind":"Variable","name":{"kind":"Name","value":"picture"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"nickname"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"picture"}}]}}]}}]} as unknown as DocumentNode<CreateUserMutation, CreateUserMutationVariables>;
+export const UserInfoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"userInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"userInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"email_verified"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<UserInfoQuery, UserInfoQueryVariables>;

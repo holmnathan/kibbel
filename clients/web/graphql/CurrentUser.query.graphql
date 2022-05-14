@@ -1,6 +1,0 @@
-query CurrentUser {
-  currentUser {
-    email
-    fullName
-  }
-}

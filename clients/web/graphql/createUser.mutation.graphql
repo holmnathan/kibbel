@@ -1,22 +1,22 @@
 mutation createUser(
-  $fullName: String!
-  $displayName: String
+  $name: String!
+  $nickname: String
   $email: String!
   $password: String!
-  $imageUrl: String
+  $picture: String
 ) {
   createUser(
     data: {
-      fullName: $fullName
-      displayName: $displayName
+      name: $name
+      nickname: $nickname
       email: $email
       password: $password
-      imageUrl: $imageUrl
+      picture: $picture
     }
   ) {
-    fullName
-    displayName
+    name
+    nickname
     email
-    imageUrl
+    picture
   }
 }
