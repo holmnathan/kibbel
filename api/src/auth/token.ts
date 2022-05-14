@@ -50,9 +50,16 @@ type TTokenTypeList = Record<TTokenType, TTokenTypeOptions>;
 type TTokenPayload = JwtPayload & Partial<User>;
 
 const getBearerToken = (authHeader?: string): string | undefined => {
-  if (!authHeader) return undefined;
-  const token = authHeader.split('Bearer ')[1];
-  if (!token) return undefined;
+  if (!authHeader) return;
+
+  // Remove “Bearer ” prefix from authorization header
+  const regEx = /^(?<bearer>[Bb])earer (?<token>\b.+$)/g;
+  const { bearer, token } = regEx.exec(authHeader)?.groups ?? {};
+
+  if (bearer !== bearer?.toUpperCase())
+    fastify.log.warn(
+      'Authorization header does not conform to “Bearer” authentication scheme\n“Bearer” text should be title case\nSee https://datatracker.ietf.org/doc/html/rfc6750#section-2.1'
+    );
   return token;
 };
 
