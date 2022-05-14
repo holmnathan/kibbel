@@ -3,15 +3,21 @@ import jwtDecode, { JwtPayload } from "jwt-decode";
 class User {
   private _token: string;
   private _idToken: string;
-  private _isSignedIn: boolean;
+  public isSignedIn: boolean;
+
+  public signOut(): void {
+    this._token = null;
+    this._idToken = null;
+    this.isSignedIn = null;
+  }
 
   public get token() {
     return this._token;
   }
 
   public set token(newToken: string) {
-    console.log("Set Access Token");
     this._token = newToken;
+    this.isSignedIn = true;
   }
 
   public get idToken() {
@@ -22,22 +28,13 @@ class User {
     this._idToken = newToken;
   }
 
-  public test = () => {
-    this.idToken = "asdfasdf";
-  };
-
   public isTokenValidOrUndefined = (): boolean => {
-    console.log("Validating Access Token");
     // if (!this._token) return true;
-
     try {
-      const { exp, ...args } = jwtDecode<JwtPayload>(this._token);
-      console.log(args);
-      if (!exp) return false;
-
-      console.log(`Expired ${Date.now() >= exp * 1000}`);
+      const { exp } = jwtDecode<JwtPayload>(this._token);
       return Date.now() >= exp * 1000;
-    } catch {
+    } catch (exception) {
+      console.log("Access Token", exception);
       return false;
     }
   };
@@ -51,7 +48,7 @@ class User {
         "“NEXT_PUBLIC_REFRESH_TOKEN_URI” environment variable not provided"
       );
 
-    console.log(`Requesting Refresh Token: ${NEXT_PUBLIC_REFRESH_TOKEN_URI}`);
+    console.log("Refreshing Tokens", NEXT_PUBLIC_REFRESH_TOKEN_URI);
 
     return await fetch(NEXT_PUBLIC_REFRESH_TOKEN_URI, {
       method: "POST",
