@@ -1,39 +1,39 @@
 // Import NPM Packages
 import { ApolloError, useMutation } from "@apollo/client";
-import { Formik, Form } from "formik";
-import * as yup from "yup";
-import { Button, Spinner } from "react-bootstrap";
+// Import Local Modules
+import { InputField } from "@kibbel/components/Form";
+import {
+  AuthorizeDocument,
+  AuthorizeMutationVariables
+} from "@kibbel/graphql/generated";
+import { user } from "@kibbel/library/apollo";
+import { Form, Formik } from "formik";
 import { NextPage } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
-
-// Import Local Modules
-import { InputField } from "@kibbel/components/Form";
-import { user } from "@kibbel/library/apollo";
-import {
-  SignInUserDocument,
-  SignInUserMutationVariables,
-} from "@kibbel/graphql/generated";
+import { Button, Spinner } from "react-bootstrap";
+import * as yup from "yup";
 
 const SignIn: NextPage = () => {
   const router = useRouter();
   const [submitionErrorMessage, setSubmitionErrorMessage] = useState<
     string | null
   >(null);
-  const [signInUser, { error }] = useMutation(SignInUserDocument);
-  const initialValues: SignInUserMutationVariables = {
+  const [signInUser, { error }] = useMutation(AuthorizeDocument);
+  const initialValues = {
     email: "",
     password: "",
   };
 
-  const validationSchema: yup.SchemaOf<SignInUserMutationVariables> =
-    yup.object({
+  const validationSchema: yup.SchemaOf<AuthorizeMutationVariables> = yup.object(
+    {
       email: yup
         .string()
         .email("Enter a valid email address")
         .required("Enter your account email address"),
       password: yup.string().required("Enter your account password"),
-    });
+    }
+  );
   return (
     <div>
       <Formik
