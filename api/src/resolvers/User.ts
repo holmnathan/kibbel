@@ -10,7 +10,7 @@ import {
   UpdateUserInput,
   UserInput
 } from '@kibbel/inputs';
-import { UserInputError } from 'apollo-server-fastify';
+import { AuthenticationError, UserInputError } from 'apollo-server-fastify';
 import {
   Arg,
   Args,
@@ -74,14 +74,22 @@ class UserAuthenticationResolver
 
 @Resolver(User)
 class UserResolver {
-  // Get authorized user info -------------------------------------------------
+  // Get authorized user info as an ID token ----------------------------------
   @Authorized()
-  @Query(() => User)
+  @Query(() => String)
   async userInfo(
     @Ctx()
     { user }: IContext
   ) {
-    return user!;
+    try {
+      if (!user)
+        throw new AuthenticationError('Unable to validate user from context');
+      // Return an end user ID token
+      return new IDToken(user).generate();
+    } catch (exception) {
+      if (exception instanceof AuthenticationError) throw exception;
+      return;
+    }
   }
 
   // Get all Users ------------------------------------------------------------
@@ -167,7 +175,7 @@ class UserResolver {
 
   @Authorized()
   @Mutation(() => Boolean)
-  async signOut(
+  async revoke(
     @Ctx()
     {
       request: {
