@@ -150,12 +150,16 @@ class User extends BaseEntityUuid implements OidcClaims.Standard {
   favorite_foods!: Food[];
 }
 
-@ObjectType({ description: 'Authenticated User Response' })
-class AuthenticationResponse {
+@ObjectType({ description: 'Authenticated User Information' })
+class IDTokenResponse {
   @Field({
     description: 'Base64 encoded JSON Web Token (JWT) User ID Token',
   })
   id_token?: string;
+}
+
+@ObjectType({ description: 'Authenticated User Response' })
+class AuthenticationResponse extends IDTokenResponse {
   @Field({
     description:
       'Sets a browser cookie named "kibbel" with a Base64 encoded JSON Web Token (JWT) Refresh Token',
@@ -177,4 +181,4 @@ class AllUsersResponse implements Pick<User, 'email' | 'nickname'> {
 }
 
 export default User;
-export { User, AuthenticationResponse, AllUsersResponse };
+export { User, IDTokenResponse, AuthenticationResponse, AllUsersResponse };

@@ -3,6 +3,7 @@ import type { IContext } from '@kibbel/Context';
 import {
   AllUsersResponse,
   AuthenticationResponse,
+  IDTokenResponse,
   User
 } from '@kibbel/entities';
 import {
@@ -76,19 +77,20 @@ class UserAuthenticationResolver
 class UserResolver {
   // Get authorized user info as an ID token ----------------------------------
   @Authorized()
-  @Query(() => String)
+  @Query(() => IDTokenResponse)
   async userInfo(
     @Ctx()
     { user }: IContext
-  ) {
+  ): Promise<IDTokenResponse> {
     try {
       if (!user)
         throw new AuthenticationError('Unable to validate user from context');
       // Return an end user ID token
-      return new IDToken(user).generate();
+      const id_token = new IDToken(user).generate();
+      return { id_token };
     } catch (exception) {
       if (exception instanceof AuthenticationError) throw exception;
-      return;
+      return {};
     }
   }
 
