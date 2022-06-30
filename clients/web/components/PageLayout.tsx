@@ -1,12 +1,12 @@
-import type { ReactNode } from "react";
-import Head from "next/head";
 import { NavBar } from "@kibbel/components";
+import Head from "next/head";
+import type { ReactNode } from "react";
 
 type TProps = {
   children?: ReactNode;
 };
 
-const Layout = ({ children }: TProps) => {
+export const PageLayout = ({ children }: TProps) => {
   return (
     <>
       <Head>
@@ -18,5 +18,3 @@ const Layout = ({ children }: TProps) => {
     </>
   );
 };
-
-export { Layout };
