@@ -1,0 +1,10 @@
+directive @client on FIELD
+
+type Token {
+  access: String @client
+  id: String @client
+}
+
+extend type IDTokenResponse {
+  user: User @client
+}

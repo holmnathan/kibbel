@@ -2,8 +2,7 @@ import { InMemoryCache, InMemoryCacheConfig } from "@apollo/client";
 import { IdTokenResponse } from "@kibbel/graphql/generated";
 import { OidcClaims } from "@kibbel/shared";
 import jwtDecode from "jwt-decode";
-import tokenReactiveVariable from "./Token";
-import userReactiveVariable from "./User";
+import userReactiveVariable from "./user";
 
 const config: InMemoryCacheConfig = {
   typePolicies: {
@@ -33,7 +32,6 @@ const config: InMemoryCacheConfig = {
             const user = { id, ...userClaims, ...existing };
             console.log(user);
 
-            tokenReactiveVariable(id_token);
             userReactiveVariable(user);
             return user;
           },

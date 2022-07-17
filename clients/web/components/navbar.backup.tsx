@@ -1,10 +1,10 @@
-import userReactiveVariable from "@kibbel/library/apollo/user";
+import { useQuery } from "@apollo/client";
 import Link from "next/link";
 
 const NavBar = () => {
-  const user = userReactiveVariable();
-
-  const unauthenticatedLinks = (
+  const { data, loading, error } = useQuery(IsUserAuthenticatedDocument);
+  const { isAuthenticated: isUserAuthenticated } = data;
+  const unauthorizedLinks = (
     <>
       <Link href="/signin">
         <a>Sign In</a>
@@ -15,7 +15,7 @@ const NavBar = () => {
     </>
   );
 
-  const authenticatedLinks = (
+  const authorizedLinks = (
     <>
       <Link href="/account">
         <a>Account</a>
@@ -27,16 +27,13 @@ const NavBar = () => {
   );
   return (
     <>
-      <Link href={"/"}>
+      <Link href={isUserAuthenticated ? "/dashboard" : "/"}>
         <a>Home</a>
       </Link>
       <Link href="/test">
         <a>Test</a>
       </Link>
-      <Link href="/dashboard">
-        <a>Dashboard</a>
-      </Link>
-      {!user ? unauthenticatedLinks : authenticatedLinks}
+      {isUserAuthenticated ? authorizedLinks : unauthorizedLinks}
     </>
   );
 };

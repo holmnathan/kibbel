@@ -3,7 +3,7 @@ import jwtDecode, { JwtPayload } from "jwt-decode";
 class User {
   private _token: string;
   private _idToken: string;
-  public isSignedIn: boolean;
+  public isSignedIn: boolean = false;
 
   public signOut(): void {
     this._token = null;
@@ -31,6 +31,7 @@ class User {
   public isTokenValidOrUndefined = (): boolean => {
     // if (!this._token) return true;
     try {
+      console.log(this._token);
       const { exp } = jwtDecode<JwtPayload>(this._token);
       return Date.now() >= exp * 1000;
     } catch (exception) {

@@ -6,7 +6,7 @@ import {
   AuthorizeDocument,
   AuthorizeMutationVariables
 } from "@kibbel/graphql/generated";
-import { user } from "@kibbel/library/apollo";
+import userMutations from "@kibbel/library/mutations/";
 import { Form, Formik } from "formik";
 import { NextPage } from "next";
 import { useRouter } from "next/router";
@@ -46,10 +46,16 @@ const SignIn: NextPage = () => {
             await authorize({
               variables: values,
               onError: (error) => {
+                router.push("/signin");
                 throw error;
               },
-              onCompleted: ({ authorize: { token } }) => {
-                user.token = token;
+              onCompleted: ({ authorize: { token, id_token } }) => {
+                console.log(
+                  "ONCOMPLETED!ONCOMPLETED!ONCOMPLETED!ONCOMPLETED!ONCOMPLETED!"
+                );
+                console.log(id_token);
+                userMutations.deserializeIDToken(id_token);
+                userMutations.saveToken(token);
                 router.push("/dashboard");
               },
             });

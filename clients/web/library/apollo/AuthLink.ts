@@ -1,17 +1,27 @@
-import type { FetchResult, NextLink, Operation } from "@apollo/client";
-import { ApolloLink, Observable } from "@apollo/client";
-import { User } from "@kibbel/library/User";
+import {
+  ApolloLink,
+  FetchResult,
+  NextLink,
+  Observable,
+  Operation,
+  ReactiveVar
+} from "@apollo/client";
+import { UserWithToken } from "@kibbel/library/apollo/user";
 
 class AuthLink extends ApolloLink {
-  user: User;
+  user: ReactiveVar<UserWithToken>;
 
-  constructor(user: User) {
+  constructor(user: ReactiveVar<UserWithToken>) {
     super();
     this.user = user;
   }
 
-  public setAuthHeader = (operation: Operation, user: User): void => {
-    const { token } = user;
+  public setAuthHeader = async (
+    operation: Operation,
+    user: ReactiveVar<UserWithToken>
+  ): Promise<void> => {
+    console.log(user());
+    const { token } = user();
     const authorizationHeader = `Bearer ${token}`;
     if (token) {
       operation.setContext({ headers: { Authorization: authorizationHeader } });
@@ -22,6 +32,8 @@ class AuthLink extends ApolloLink {
     operation: Operation,
     forward: NextLink
   ): Observable<FetchResult> | null {
+    console.log(`Operation: ${operation.operationName}`);
+    // const cache: InMemoryCache = operation.getContext().cache;
     if (typeof forward !== "function") {
       throw new Error(
         "[Auth Link]: Auth Link is a non-terminating link and should not be the last in the composed chain"

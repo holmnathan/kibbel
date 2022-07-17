@@ -43,9 +43,19 @@ const initializeApollo = (initialState: NormalizedCacheObject = undefined) => {
   }
 
   //
-  if (isServerSide) return _apolloClient;
+  if (isServerSide()) {
+    console.log(
+      "APOLLO: SERVERSIDE! !APOLLO: SERVERSIDE! !APOLLO: SERVERSIDE!"
+    );
+    return _apolloClient;
+  }
 
-  if (!apolloClient) apolloClient = _apolloClient;
+  console.log("APOLLO: CLIENTSIDE! !APOLLO: CLIENTSIDE! !APOLLO: CLIENTSIDE!");
+
+  if (!apolloClient) {
+    console.log("APOLLO: FIRSTTIME! APOLLO: FIRSTTIME! APOLLO: FIRSTTIME!");
+    apolloClient = _apolloClient;
+  }
 
   return _apolloClient;
 };
